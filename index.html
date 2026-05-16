@@ -1067,11 +1067,11 @@ async function transformToDisplay() {
   const startBtnHeight = isMobile ? 40 : 24;
   const startBtn = el('rect', {
     x: startBtnX, y: startBtnY, width: startBtnWidth, height: startBtnHeight,
-    rx: 4, ry: 4,
-    fill: '#2a3a5a',
+    rx: 6, ry: 6,
+    fill: '#1a1a2e',
     stroke: '#49e0ff',
-    'stroke-width': 1,
-    style: 'cursor: pointer; pointer-events: all;'
+    'stroke-width': 2,
+    style: 'cursor: pointer; pointer-events: all; filter: drop-shadow(0 0 8px rgba(73, 224, 255, 0.3));'
   });
   
   const startTextX = isMobile ? 100 : 70;
@@ -1080,12 +1080,14 @@ async function transformToDisplay() {
     x: startTextX, y: startTextY,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
-    'font-size': isMobile ? '14' : '10',
+    'font-weight': '600',
+    'font-size': isMobile ? '16' : '11',
     'text-anchor': 'middle',
     cursor: 'pointer'
   });
   startText.textContent = 'START';
   startText.style.cursor = 'pointer';
+  startText.style.filter = 'drop-shadow(0 0 4px rgba(73, 224, 255, 0.5))';
   
   // Add click handler to open dashboard
   startBtn.addEventListener('click', (e) => {
@@ -1099,12 +1101,13 @@ async function transformToDisplay() {
   
   // Add clock
   const clockTextX = isMobile ? 860 : 860;
-  const clockTextY = isMobile ? 866 : 314;
+  const clockTextY = isMobile ? 874 : 314;
   const clockText = el('text', {
     x: clockTextX, y: clockTextY,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
-    'font-size': '10',
+    'font-weight': '600',
+    'font-size': isMobile ? '16' : '11',
     'text-anchor': 'end'
   });
   clockText.textContent = new Date().toLocaleTimeString();
