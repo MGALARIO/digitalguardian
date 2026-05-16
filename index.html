@@ -930,9 +930,24 @@ async function transformToDisplay() {
   // Clear the stage
   svg.innerHTML = '';
   
+  // Detect mobile and adjust dimensions
+  const isMobile = window.innerWidth <= 768;
+  const viewBox = isMobile ? '0 0 900 900' : '0 0 900 350';
+  svg.setAttribute('viewBox', viewBox);
+  
+  const frameX = isMobile ? 10 : 10;
+  const frameY = isMobile ? 10 : 10;
+  const frameWidth = isMobile ? 880 : 880;
+  const frameHeight = isMobile ? 880 : 330;
+  
+  const screenX = isMobile ? 25 : 25;
+  const screenY = isMobile ? 25 : 25;
+  const screenWidth = isMobile ? 850 : 850;
+  const screenHeight = isMobile ? 850 : 300;
+  
   // Create monitor frame
   const frame = el('rect', {
-    x: 10, y: 10, width: 880, height: 330,
+    x: frameX, y: frameY, width: frameWidth, height: frameHeight,
     rx: 15, ry: 15,
     fill: '#1a1a2e',
     stroke: '#2a3a5a',
@@ -941,7 +956,7 @@ async function transformToDisplay() {
   
   // Create screen area
   const screen = el('rect', {
-    x: 25, y: 25, width: 850, height: 300,
+    x: screenX, y: screenY, width: screenWidth, height: screenHeight,
     rx: 8, ry: 8,
     fill: '#0a0a12',
     stroke: '#49e0ff',
@@ -953,8 +968,10 @@ async function transformToDisplay() {
   const loadingGroup = el('g', { id: 'loading-group' });
   
   // Loading spinner
+  const spinnerCx = isMobile ? 450 : 450;
+  const spinnerCy = isMobile ? 450 : 150;
   const spinner = el('circle', {
-    cx: 450, cy: 150, r: 30,
+    cx: spinnerCx, cy: spinnerCy, r: 30,
     fill: 'none',
     stroke: '#49e0ff',
     'stroke-width': 3,
@@ -967,17 +984,20 @@ async function transformToDisplay() {
   
   // Add spinner animation to CSS
   const style = document.createElement('style');
+  const transformOrigin = isMobile ? '450px 450px' : '450px 150px';
   style.textContent = `
     @keyframes spin {
-      from { transform: rotate(0deg); transform-origin: 450px 150px; }
-      to { transform: rotate(360deg); transform-origin: 450px 150px; }
+      from { transform: rotate(0deg); transform-origin: ${transformOrigin}; }
+      to { transform: rotate(360deg); transform-origin: ${transformOrigin}; }
     }
   `;
   document.head.appendChild(style);
   
   // Loading text
+  const loadingTextX = isMobile ? 450 : 450;
+  const loadingTextY = isMobile ? 500 : 200;
   const loadingText = el('text', {
-    x: 450, y: 200,
+    x: loadingTextX, y: loadingTextY,
     fill: '#49e0ff',
     'font-family': 'Fira Code, monospace',
     'font-size': '14',
@@ -993,7 +1013,7 @@ async function transformToDisplay() {
   
   // Create desktop background
   const desktop = el('rect', {
-    x: 25, y: 25, width: 850, height: 300,
+    x: screenX, y: screenY, width: screenWidth, height: screenHeight,
     rx: 8, ry: 8,
     fill: 'url(#desktopGradient)'
   });
@@ -1009,16 +1029,22 @@ async function transformToDisplay() {
   el('stop', { offset: '100%', 'stop-color': '#1a1a30' }, gradient);
   
   // Add taskbar
+  const taskbarY = isMobile ? 845 : 295;
+  const taskbarHeight = isMobile ? 30 : 30;
   const taskbar = el('rect', {
-    x: 25, y: 295, width: 850, height: 30,
+    x: screenX, y: taskbarY, width: screenWidth, height: taskbarHeight,
     fill: '#1a1a2e',
     stroke: '#2a3a5a',
     'stroke-width': 1
   });
   
   // Add start button
+  const startBtnX = isMobile ? 30 : 30;
+  const startBtnY = isMobile ? 848 : 298;
+  const startBtnWidth = isMobile ? 100 : 80;
+  const startBtnHeight = isMobile ? 28 : 24;
   const startBtn = el('rect', {
-    x: 30, y: 298, width: 80, height: 24,
+    x: startBtnX, y: startBtnY, width: startBtnWidth, height: startBtnHeight,
     rx: 4, ry: 4,
     fill: '#2a3a5a',
     stroke: '#49e0ff',
@@ -1026,8 +1052,10 @@ async function transformToDisplay() {
     style: 'cursor: pointer; pointer-events: all;'
   });
   
+  const startTextX = isMobile ? 80 : 70;
+  const startTextY = isMobile ? 866 : 314;
   const startText = el('text', {
-    x: 70, y: 314,
+    x: startTextX, y: startTextY,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
     'font-size': '10',
@@ -1048,8 +1076,10 @@ async function transformToDisplay() {
   });
   
   // Add clock
+  const clockTextX = isMobile ? 860 : 860;
+  const clockTextY = isMobile ? 866 : 314;
   const clockText = el('text', {
-    x: 860, y: 314,
+    x: clockTextX, y: clockTextY,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
     'font-size': '10',
@@ -1065,8 +1095,12 @@ async function transformToDisplay() {
   // Add window
   const windowGroup = el('g', { id: 'window-group' });
   
+  const windowRectX = isMobile ? 100 : 100;
+  const windowRectY = isMobile ? 100 : 50;
+  const windowRectWidth = isMobile ? 700 : 300;
+  const windowRectHeight = isMobile ? 400 : 200;
   const windowRect = el('rect', {
-    x: 100, y: 50, width: 300, height: 200,
+    x: windowRectX, y: windowRectY, width: windowRectWidth, height: windowRectHeight,
     rx: 8, ry: 8,
     fill: '#12121f',
     stroke: '#49e0ff',
@@ -1074,19 +1108,19 @@ async function transformToDisplay() {
   }, windowGroup);
   
   const titleBar = el('rect', {
-    x: 100, y: 50, width: 300, height: 25,
+    x: windowRectX, y: windowRectY, width: windowRectWidth, height: 25,
     rx: 8, ry: 8,
     fill: '#1a1a2e'
   }, windowGroup);
   
   // Fix title bar corners
   const titleBarFix = el('rect', {
-    x: 100, y: 65, width: 300, height: 10,
+    x: windowRectX, y: windowRectY + 15, width: windowRectWidth, height: 10,
     fill: '#1a1a2e'
   }, windowGroup);
   
   const windowTitle = el('text', {
-    x: 115, y: 66,
+    x: windowRectX + 15, y: windowRectY + 16,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
     'font-size': '10'
@@ -1101,22 +1135,26 @@ async function transformToDisplay() {
     '> _'
   ];
   
+  const textX = isMobile ? 115 : 110;
+  const textYStart = isMobile ? 140 : 90;
+  const lineHeight = isMobile ? 30 : 20;
+  
   terminalLines.forEach((line, i) => {
     const text = el('text', {
-      x: 110, y: 90 + i * 20,
+      x: textX, y: textYStart + i * lineHeight,
       fill: '#49e0ff',
       'font-family': 'Fira Code, monospace',
-      'font-size': '11'
+      'font-size': isMobile ? '14' : '11'
     }, windowGroup);
     text.textContent = line;
   });
   
   // Blinking cursor
   const cursor = el('text', {
-    x: 110, y: 90 + (terminalLines.length - 1) * 20,
+    x: textX, y: textYStart + (terminalLines.length - 1) * lineHeight,
     fill: '#49e0ff',
     'font-family': 'Fira Code, monospace',
-    'font-size': '11'
+    'font-size': isMobile ? '14' : '11'
   }, windowGroup);
   cursor.textContent = '_';
   
