@@ -112,16 +112,22 @@
   
   .card {
     background: var(--panel);
-    border: 1px solid var(--component-border);
-    border-radius: 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     padding: 24px;
     transition: all 0.3s ease;
+    cursor: pointer;
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.6s ease backwards;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    cursor: pointer;
+  }
+  
+  .card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
   
   .card:nth-child(1) { animation-delay: 0.1s; }
@@ -667,11 +673,11 @@
           <path d="M18.4 6.6a9 9 0 1 1-12.8 0" stroke="#ff0000"/>
         </svg>
       </div>
-      <div class="card-title">Power On</div>
-      <div class="card-desc">System power control and boot sequence management.</div>
+      <div class="card-title">Power Button History</div>
+      <div class="card-desc">The story behind the iconic power symbol and its binary connection.</div>
       <div class="card-stat">
-        <div class="stat-value">Active</div>
-        <div class="stat-label">System</div>
+        <div class="stat-value">Learn</div>
+        <div class="stat-label">History</div>
       </div>
     </div>
     
@@ -685,70 +691,70 @@
         </svg>
       </div>
       <div class="card-title">Binary Logic</div>
-      <div class="card-desc">How computers use 0 and 1 to represent numbers and letters.</div>
+      <div class="card-desc">Interactive lab: practice creating bit containers and understanding binary fundamentals.</div>
       <div class="card-stat">
-        <div class="stat-value">8-bit</div>
-        <div class="stat-label">System</div>
+        <div class="stat-value">Practice</div>
+        <div class="stat-label">Lab</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">🛡️</div>
       <div class="card-title">Security Status</div>
-      <div class="card-desc">Real-time threat monitoring and protection systems active.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">100%</div>
-        <div class="stat-label">Protected</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">⚡</div>
       <div class="card-title">System Performance</div>
-      <div class="card-desc">CPU, memory, and network utilization metrics.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">87%</div>
-        <div class="stat-label">Optimal</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">🌐</div>
       <div class="card-title">Network Activity</div>
-      <div class="card-desc">Incoming and outgoing traffic monitoring.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">2.4 GB</div>
-        <div class="stat-label">Today</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">🔒</div>
       <div class="card-title">Encryption Status</div>
-      <div class="card-desc">AES-256 encryption active on all communications.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">Active</div>
-        <div class="stat-label">Secure</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">📊</div>
       <div class="card-title">Analytics</div>
-      <div class="card-desc">System behavior analysis and anomaly detection.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">0</div>
-        <div class="stat-label">Threats</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
     
-    <div class="card">
+    <div class="card disabled">
       <div class="card-icon">🔧</div>
       <div class="card-title">Maintenance</div>
-      <div class="card-desc">System health checks and automated updates.</div>
+      <div class="card-desc">Coming Soon</div>
       <div class="card-stat">
-        <div class="stat-value">Up</div>
-        <div class="stat-label">Healthy</div>
+        <div class="stat-value">—</div>
+        <div class="stat-label">Coming Soon</div>
       </div>
     </div>
   </div>
