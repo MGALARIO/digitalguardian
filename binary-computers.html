@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Logic in Computers - Digital Guardian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508;
+      --panel: #0f0f1a;
+      --text: #cfe8ff;
+      --muted: #8a9ab0;
+      --accent: #49e0ff;
+      --purple: #a855f7;
+      --power: #ff3366;
+      --wire-off: #1a1a2e;
+      --component: #12121f;
+      --component-border: #2a3a5a;
+      --mono: 'Fira Code', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(73, 224, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(73, 224, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(73, 224, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .corner {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      z-index: 10;
+      opacity: 0.6;
+    }
+    .corner.tl { top: 20px; left: 20px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.tr { top: 20px; right: 20px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+    .corner.bl { bottom: 20px; left: 20px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.br { bottom: 20px; right: 20px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .header .subtitle {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 30px;
+      color: var(--accent);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      padding: 10px 20px;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .back-link:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .content-section {
+      background: var(--panel);
+      border: 1px solid var(--component-border);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .content-section h2 {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .content-section p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 15px;
+    }
+
+    .content-section ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+
+    .content-section li {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .bit-visualization {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .bit {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 1.2rem;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .bit.off {
+      background: rgba(255, 0, 0, 0.2);
+      border: 2px solid #ff0000;
+      color: #ff0000;
+    }
+
+    .bit.on {
+      background: rgba(0, 255, 0, 0.3);
+      border: 2px solid #00ff00;
+      color: var(--bg);
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+
+    .bit-label {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .example-box {
+      background: var(--component);
+      border: 1px solid var(--component-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .example-box .title {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .example-box .binary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+    }
+
+    .example-box .binary-label {
+      color: var(--muted);
+    }
+
+    .example-box .binary-value {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .example-box .decimal-value {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .ascii-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+
+    .ascii-table th,
+    .ascii-table td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--component-border);
+    }
+
+    .ascii-table th {
+      background: var(--component);
+      color: var(--accent);
+    }
+
+    .ascii-table tr:hover {
+      background: var(--wire-off);
+    }
+
+    .ascii-table .binary {
+      color: var(--accent);
+    }
+
+    .ascii-table .char {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .content-section {
+        padding: 20px;
+      }
+
+      .bit {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="container">
+  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  
+  <div class="header">
+    <h1>Binary Logic in Computers</h1>
+    <div class="subtitle">HOW <span style="color: #ff0000; font-weight: 600;">0</span> AND <span style="color: #00ff00; font-weight: 600;">1</span> POWER DIGITAL SYSTEMS</div>
+  </div>
+
+  <div class="content-section">
+    <h2>The Binary Foundation</h2>
+    <p>Computers are built on a simple yet powerful concept: everything is represented using just two states - <strong><span style="color: #ff0000;">0</span></strong> and <strong><span style="color: #00ff00;">1</span></strong>. These correspond to electrical signals in hardware where <strong><span style="color: #ff0000;">0</span></strong> means "<span style="color: #ff0000;">off</span>" (no electricity flowing) and <strong><span style="color: #00ff00;">1</span></strong> means "<span style="color: #00ff00;">on</span>" (electricity flowing).</p>
+    <p>This binary system is hardwired into every computer component, from the smallest transistor to the largest server. It is the fundamental language that computers use to store, process, and communicate information.</p>
+  </div>
+
+  <div class="content-section">
+    <h2>Bits and Bytes</h2>
+    <p>A single binary digit is called a <strong>bit</strong>. Think of a bit as a container that can only hold one of two values: a <span style="color: #ff0000;">0</span> or a <span style="color: #00ff00;">1</span>. Just like a light switch can only be on or off, a bit can only store one of these two states. To represent more complex information, computers group bits together into larger units called <strong>bytes</strong>.</p>
+    
+    <div class="example-box">
+      <div class="title">Bit Visual Representation</div>
+      <div class="bit-visualization">
+        <div class="bit off">0</div>
+        <div class="bit on">1</div>
+        <div class="bit off">0</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit off">0</div>
+        <div class="bit off">1</div>
+        <div class="bit on">1</div>
+      </div>
+      <div class="bit-label">8 bits = 1 byte</div>
+    </div>
+    
+    <p><strong>Common Bit Groupings:</strong></p>
+    <ul>
+      <li><strong>Nibble:</strong> 4 bits (can represent 16 different values: 0-15)</li>
+      <li><strong>Byte:</strong> 8 bits (can represent 256 different values: 0-255)</li>
+      <li><strong>Word:</strong> 16 bits (can represent 65,536 different values)</li>
+      <li><strong>Double Word:</strong> 32 bits (can represent over 4 billion different values)</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h2>Binary Numbers</h2>
+    <p>Just like decimal numbers use powers of 10 (1, 10, 100, 1000...), binary numbers use powers of 2 (1, 2, 4, 8, 16, 32, 64, 128...). Each position in a binary number represents a different power of 2.</p>
+    
+    <div class="example-box">
+      <div class="title">Example: Number 5 in 8-bit Binary</div>
+      <div class="bit-visualization">
+        <div class="bit off">0</div>
+        <div class="bit off">0</div>
+        <div class="bit off">0</div>
+        <div class="bit off">0</div>
+        <div class="bit off">0</div>
+        <div class="bit on">1</div>
+        <div class="bit off">0</div>
+        <div class="bit on">1</div>
+      </div>
+      <div class="bit-label">Binary: 00000101 = Decimal: 5</div>
+    </div>
+    
+    <div class="example-box">
+      <div class="title">Example: Number 255 in 8-bit Binary</div>
+      <div class="bit-visualization">
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+        <div class="bit on">1</div>
+      </div>
+      <div class="bit-label">Binary: 11111111 = Decimal: 255</div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h2>Binary Letters (ASCII)</h2>
+    <p>Computers also use binary to represent letters and characters through encoding systems like ASCII (American Standard Code for Information Interchange). Each character is assigned a unique binary code.</p>
+    
+    <div class="example-box">
+      <div class="title">ASCII Character Examples</div>
+      <table class="ascii-table">
+        <thead>
+          <tr>
+            <th>Character</th>
+            <th>Decimal</th>
+            <th>8-bit Binary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="char">A</td>
+            <td class="decimal-value">65</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span></td>
+          </tr>
+          <tr>
+            <td class="char">B</td>
+            <td class="decimal-value">66</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span></td>
+          </tr>
+          <tr>
+            <td class="char">C</td>
+            <td class="decimal-value">67</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #00ff00;">1</span></td>
+          </tr>
+          <tr>
+            <td class="char">a</td>
+            <td class="decimal-value">97</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span></td>
+          </tr>
+          <tr>
+            <td class="char">0</td>
+            <td class="decimal-value">48</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span></td>
+          </tr>
+          <tr>
+            <td class="char">@</td>
+            <td class="decimal-value">64</td>
+            <td class="binary"><span style="color: #ff0000;">0</span><span style="color: #00ff00;">1</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span><span style="color: #ff0000;">0</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h2>Hardware Implementation</h2>
+    <p>In actual computer hardware, these binary states are implemented using transistors. A transistor can be either "<span style="color: #ff0000;">off</span>" (<span style="color: #ff0000;">0</span>) or "<span style="color: #00ff00;">on</span>" (<span style="color: #00ff00;">1</span>), creating physical switches that can represent binary data.</p>
+    
+    <p><strong>How it works in practice:</strong></p>
+    <ul>
+      <li><strong>Transistors:</strong> Billions of transistors act as switches, each storing one bit</li>
+      <li><strong>Voltage Levels:</strong> Low voltage (0V) represents <span style="color: #ff0000;">0</span>, high voltage (3.3V or 5V) represents <span style="color: #00ff00;">1</span></li>
+      <li><strong>Memory Cells:</strong> Each memory cell stores one bit using charge on a capacitor</li>
+      <li><strong>Logic Gates:</strong> Circuits that perform logical operations on binary inputs</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h2>Why Binary Works So Well</h2>
+    <ul>
+      <li><strong>Simplicity:</strong> Only two states to manage, making hardware design reliable</li>
+      <li><strong>Reliability:</strong> Less prone to errors compared to systems with more states</li>
+      <li><strong>Scalability:</strong> Can represent any amount of information by using more bits</li>
+      <li><strong>Universal:</strong> All digital systems use the same fundamental binary language</li>
+      <li><strong>Efficiency:</strong> Minimal hardware requirements to implement</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Digital Guardian v1.0 • <a href="dashboard.html">Return to Dashboard</a></p>
+</div>
+
+</body>
+</html>
