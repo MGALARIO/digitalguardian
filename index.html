@@ -310,7 +310,8 @@
     border-radius: 12px;
     padding: 14px 20px;
     margin-top: 20px;
-    max-width: 800px;
+    max-width: 1200px;
+    width: 100%;
     min-height: 60px;
   }
   
@@ -827,6 +828,20 @@ function narrate(stepLabel, title, desc) {
   `;
 }
 
+function matchNarratorWidth() {
+  const stageBox = document.querySelector('.stage-box');
+  const narrator = document.querySelector('.narrator');
+  if (stageBox && narrator) {
+    const stageBoxRect = stageBox.getBoundingClientRect();
+    const containerRect = document.querySelector('.container').getBoundingClientRect();
+    
+    narrator.style.width = stageBox.offsetWidth + 'px';
+    narrator.style.marginLeft = (stageBoxRect.left - containerRect.left - 20) + 'px';
+    narrator.style.marginRight = 'auto';
+    narrator.style.marginTop = '20px';
+  }
+}
+
 function setProgress(stepNum) {
   const progress = document.getElementById('progressFill');
   progress.style.width = ((stepNum / 8) * 100) + '%';
@@ -1195,7 +1210,12 @@ async function transformToDisplay() {
 }
 
 // Initialize
-buildStage();
+window.addEventListener('DOMContentLoaded', () => {
+  buildStage();
+  matchNarratorWidth();
+});
+
+window.addEventListener('resize', matchNarratorWidth);
 
 document.getElementById('powerBtn').addEventListener('click', runBootSequence);
 </script>
