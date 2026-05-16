@@ -185,8 +185,9 @@
   }
   
   .power-icon {
-    font-size: 42px;
-    color: var(--power-dim);
+    width: 40px;
+    height: 40px;
+    color: var(--power);
     transition: all 0.3s ease;
   }
   
@@ -571,7 +572,10 @@
   <div class="main-stage">
     <div class="power-section">
       <button class="power-btn" id="powerBtn" aria-label="Power On">
-        <span class="power-icon">⏻</span>
+        <svg class="power-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v10"/>
+          <path d="M18.4 6.6a9 9 0 1 1-12.8 0"/>
+        </svg>
       </button>
       <div class="power-label">Power On</div>
     </div>
