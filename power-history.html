@@ -767,160 +767,111 @@ dropBox.addEventListener('dragover', handleDragOver);
 dropBox.addEventListener('dragleave', handleDragLeave);
 dropBox.addEventListener('drop', handleDrop);
 
-// Touch events for mobile
-let draggedItem = null;
-let touchStartX = 0;
-let touchStartY = 0;
+// Touch events for mobile - using ghost element approach like subject-predicate lab
 let selectedValue = null;
 
 paletteItems.forEach(item => {
-  item.addEventListener('touchstart', handleTouchStart, { passive: false });
-  item.addEventListener('touchmove', handleTouchMove, { passive: false });
-  item.addEventListener('touchend', handleTouchEnd);
-  // Add click handler as fallback for mobile
-  item.addEventListener('click', handleItemClick);
-});
-
-// Add click handler to drop box for mobile tap-to-place
-dropBox.addEventListener('click', handleDropBoxClick);
-
-function handleItemClick(e) {
-  selectedValue = e.target.dataset.value;
-  e.target.style.opacity = '0.5';
+  // Touch support for mobile with visual follower
+  let touchGhost = null;
+  let touchOffsetX = 0;
+  let touchOffsetY = 0;
   
-  // Reset other items
-  paletteItems.forEach(item => {
-    if (item !== e.target) {
-      item.style.opacity = '1';
+  item.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const rect = item.getBoundingClientRect();
+    touchOffsetX = touch.clientX - rect.left;
+    touchOffsetY = touch.clientY - rect.top;
+    
+    // Create ghost element that follows finger
+    touchGhost = item.cloneNode(true);
+    touchGhost.style.position = 'fixed';
+    touchGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+    touchGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+    touchGhost.style.width = rect.width + 'px';
+    touchGhost.style.height = rect.height + 'px';
+    touchGhost.style.zIndex = '9999';
+    touchGhost.style.pointerEvents = 'none';
+    touchGhost.style.opacity = '0.8';
+    touchGhost.style.transform = 'scale(1.1)';
+    touchGhost.style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)';
+    document.body.appendChild(touchGhost);
+    
+    // Hide original during drag
+    item.style.opacity = '0';
+    item.classList.add('dragging');
+    item.dataset.touchValue = item.dataset.value;
+  }, { passive: true });
+  
+  item.addEventListener('touchmove', (e) => {
+    if (!touchGhost) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    touchGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+    touchGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+  }, { passive: false });
+  
+  item.addEventListener('touchend', (e) => {
+    if (!touchGhost) return;
+    
+    const touch = e.changedTouches[0];
+    const elementAtTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    // Remove ghost
+    touchGhost.remove();
+    touchGhost = null;
+    item.classList.remove('dragging');
+    
+    if (elementAtTouch) {
+      const container = elementAtTouch.closest('#dropBox') || elementAtTouch.closest('.lab-drop-box');
+      if (container || elementAtTouch.id === 'dropBox') {
+        const value = item.dataset.touchValue;
+        
+        // Update drop box with the value
+        dropValue.textContent = value;
+        dropValue.className = 'bit-value ' + (value === '0' ? 'zero' : 'one');
+        
+        // Add border class to drop box
+        dropBox.classList.remove('has-zero', 'has-one');
+        dropBox.classList.add(value === '0' ? 'has-zero' : 'has-one');
+        
+        // Update bulb state
+        setBulbState(value === '1' ? 'on' : 'off');
+        
+        // Show feedback
+        const feedback = document.getElementById('labFeedback');
+        if (value === '1') {
+          feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
+          feedback.className = 'lab-feedback info';
+          feedback.style.display = 'block';
+        } else {
+          feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
+          feedback.className = 'lab-feedback success';
+          feedback.style.display = 'block';
+        }
+        
+        // Add click handler to reset
+        dropBox.onclick = function() {
+          dropValue.textContent = '?';
+          dropValue.className = '';
+          dropBox.classList.remove('has-zero', 'has-one');
+          setBulbState('off');
+          document.getElementById('labFeedback').style.display = 'none';
+          dropBox.onclick = null;
+        };
+        
+        // Show original again
+        item.style.opacity = '';
+      } else {
+        // Drop failed - show original again
+        item.style.opacity = '';
+      }
+    } else {
+      // Drop failed - show original again
+      item.style.opacity = '';
     }
   });
-}
-
-function handleDropBoxClick() {
-  if (selectedValue) {
-    // Update drop box with the value
-    dropValue.textContent = selectedValue;
-    dropValue.className = 'bit-value ' + (selectedValue === '0' ? 'zero' : 'one');
-    
-    // Add border class to drop box
-    dropBox.classList.remove('has-zero', 'has-one');
-    dropBox.classList.add(selectedValue === '0' ? 'has-zero' : 'has-one');
-    
-    // Update bulb state
-    setBulbState(selectedValue === '1' ? 'on' : 'off');
-    
-    // Show feedback
-    const feedback = document.getElementById('labFeedback');
-    if (selectedValue === '1') {
-      feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
-      feedback.className = 'lab-feedback info';
-      feedback.style.display = 'block';
-    } else {
-      feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
-      feedback.className = 'lab-feedback success';
-      feedback.style.display = 'block';
-    }
-    
-    // Reset selection
-    paletteItems.forEach(item => {
-      item.style.opacity = '1';
-    });
-    selectedValue = null;
-    
-    // Add click handler to reset
-    dropBox.onclick = function() {
-      dropValue.textContent = '?';
-      dropValue.className = '';
-      dropBox.classList.remove('has-zero', 'has-one');
-      setBulbState('off');
-      document.getElementById('labFeedback').style.display = 'none';
-      // Re-add click handler for tap-to-place
-      dropBox.onclick = handleDropBoxClick;
-    };
-  }
-}
-
-function handleTouchStart(e) {
-  e.preventDefault();
-  const touch = e.touches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-  draggedItem = e.target;
-  draggedItem.style.opacity = '0.5';
-}
-
-function handleTouchMove(e) {
-  e.preventDefault();
-  if (!draggedItem) return;
-  
-  const touch = e.touches[0];
-  const moveX = touch.clientX - touchStartX;
-  const moveY = touch.clientY - touchStartY;
-  
-  draggedItem.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.1)`;
-  
-  // Check if hovering over drop box during drag
-  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const container = dropTarget?.closest('#dropBox') || dropTarget?.closest('.lab-drop-box');
-  
-  if (container || dropTarget?.id === 'dropBox') {
-    dropBox.classList.add('drag-over');
-  } else {
-    dropBox.classList.remove('drag-over');
-  }
-}
-
-function handleTouchEnd(e) {
-  e.preventDefault();
-  if (!draggedItem) return;
-  
-  dropBox.classList.remove('drag-over');
-  
-  const touch = e.changedTouches[0];
-  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const container = dropTarget?.closest('#dropBox') || dropTarget?.closest('.lab-drop-box');
-  
-  if (container || dropTarget?.id === 'dropBox') {
-    const value = draggedItem.dataset.value;
-    
-    // Update drop box with the value
-    dropValue.textContent = value;
-    dropValue.className = 'bit-value ' + (value === '0' ? 'zero' : 'one');
-    
-    // Add border class to drop box
-    dropBox.classList.remove('has-zero', 'has-one');
-    dropBox.classList.add(value === '0' ? 'has-zero' : 'has-one');
-    
-    // Update bulb state
-    setBulbState(value === '1' ? 'on' : 'off');
-    
-    // Show feedback
-    const feedback = document.getElementById('labFeedback');
-    if (value === '1') {
-      feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
-      feedback.className = 'lab-feedback info';
-      feedback.style.display = 'block';
-    } else {
-      feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
-      feedback.className = 'lab-feedback success';
-      feedback.style.display = 'block';
-    }
-    
-    // Add click handler to reset
-    dropBox.onclick = function() {
-      dropValue.textContent = '?';
-      dropValue.className = '';
-      dropBox.classList.remove('has-zero', 'has-one');
-      setBulbState('off');
-      document.getElementById('labFeedback').style.display = 'none';
-      dropBox.onclick = null;
-    };
-  }
-  
-  draggedItem.style.opacity = '1';
-  draggedItem.style.transform = '';
-  draggedItem = null;
-}
+});
 
 function handleDragStart(e) {
   e.dataTransfer.setData('text/plain', e.target.dataset.value);
