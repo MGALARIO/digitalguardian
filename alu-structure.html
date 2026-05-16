@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ALU Structure & Register Chaining Visualizer</title>
+<style>
+  :root{
+    --bg:#061320;
+    --panel:#0a1e2e;
+    --text:#cfe8ff;
+    --muted:#7a93a8;
+    --accent:#49e0ff;
+    --accent-dim:#2a6a82;
+    --hot:#ffcc44;
+    --reg:#b58bff;         /* purple for the main result register & feedback loop */
+    --reg-dim:#3a2a52;
+    --hold:#b6ff3c;        /* neon lime-green for the C holding register unit */
+    --hold-dim:#3a5a1a;
+    --wire-off:#23354a;
+    --gate:#0f2a3f;
+    --gate-on:#154a6a;
+    --mono:'JetBrains Mono','Fira Code',Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:24px;background:
+      radial-gradient(1200px 600px at 50% 0%, #0a2438 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    min-height:100vh;
+  }
+  h1{margin:0 0 8px;font-weight:600;letter-spacing:.5px;font-size:24px}
+  h1 .sub{color:var(--muted);font-weight:400;font-size:15px;margin-left:8px}
+  .tagline{color:var(--muted);font-size:13px;margin-bottom:18px;max-width:900px;line-height:1.5}
+  .tagline a{color:var(--accent);text-decoration:none}
+  .tagline a:hover{text-decoration:underline}
+
+  .controls{
+    display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;
+    background:var(--panel);border:1px solid #163048;border-radius:12px;
+    padding:16px 20px;margin-bottom:16px;
+  }
+  .control-group{display:flex;flex-direction:column;gap:6px}
+  .control-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .control-group input[type="number"],
+  .control-group select{
+    background:#081828;color:var(--text);border:1px solid #2a587d;
+    border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:14px;
+    width:110px;outline:none;
+  }
+  .control-group input[type="number"]:focus,
+  .control-group select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(73,224,255,.2)}
+  .control-group input[type="number"]:disabled{opacity:.4;cursor:not-allowed}
+  .control-group .hint{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
+  .control-group.narrow input{width:70px}
+
+  .go,.clear{
+    padding:10px 18px;border-radius:10px;cursor:pointer;font-weight:700;
+    letter-spacing:1px;font-size:13px;border:none;
+  }
+  .go{
+    background:linear-gradient(180deg,#49e0ff,#2ab5d4);color:#052838;
+    box-shadow:0 0 16px rgba(73,224,255,.3);
+  }
+  .go:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  .clear{
+    background:linear-gradient(180deg,#15344a,#0c2336);color:#bfe8ff;
+    border:1px solid #2a587d;transition:background .15s, border-color .15s;
+  }
+  .clear:hover{background:linear-gradient(180deg,#1b4566,#102c42);border-color:#3d7aa6}
+
+  .stagebox{
+    background:var(--panel);border:1px solid #163048;border-radius:12px;
+    padding:8px;margin-bottom:16px;overflow:auto;
+  }
+  svg.stage{
+    width:100%;height:auto;display:block;background:
+      radial-gradient(600px 300px at 50% 50%, #0a2438 0%, transparent 70%),
+      #061320;
+    border-radius:12px;
+    min-width:900px;
+  }
+
+  /* Wires */
+  .wire{
+    stroke:var(--wire-off);stroke-width:2.5;fill:none;stroke-linecap:round;
+    pointer-events:stroke;cursor:help;
+  }
+  .wire.on{stroke:var(--accent);filter:drop-shadow(0 0 5px rgba(73,224,255,.8))}
+  .wire.hot{stroke:var(--hot);filter:drop-shadow(0 0 5px rgba(255,204,68,.8))}
+  .wire.regwire{stroke:var(--reg-dim)}
+  .wire.regwire.on{stroke:var(--reg);filter:drop-shadow(0 0 6px rgba(181,139,255,.8))}
+
+  /* Tracer path (pen-drawing effect) sits on top of a wire */
+  .tracer{
+    fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;
+    pointer-events:none;
+  }
+  .tracer.cyan{stroke:var(--accent);filter:drop-shadow(0 0 6px rgba(73,224,255,.9))}
+  .tracer.purple{stroke:var(--reg);filter:drop-shadow(0 0 6px rgba(181,139,255,.9))}
+  .tracer.yellow{stroke:var(--hot);filter:drop-shadow(0 0 6px rgba(255,204,68,.9))}
+  .tracer.green{stroke:var(--hold);filter:drop-shadow(0 0 6px rgba(182,255,60,.9))}
+
+  /* Traveling value box that rides along the wire */
+  .travel-box{pointer-events:none}
+  .travel-box rect{
+    stroke-width:1.5;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  .travel-box.cyan rect{fill:#0a1e2e;stroke:var(--accent)}
+  .travel-box.purple rect{fill:#1a1030;stroke:var(--reg)}
+  .travel-box.yellow rect{fill:#1a0f00;stroke:var(--hot)}
+  .travel-box.green rect{fill:#0f1a05;stroke:var(--hold)}
+  .travel-box text{
+    font-family:var(--mono);font-size:13px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;
+  }
+  .travel-box.cyan text{fill:var(--accent)}
+  .travel-box.purple text{fill:var(--reg)}
+  .travel-box.yellow text{fill:var(--hot)}
+  .travel-box.green text{fill:var(--hold)}
+  .travel-box .tag{
+    font-size:9px;letter-spacing:1px;
+  }
+  .travel-box.cyan .tag{fill:#7a93a8}
+  .travel-box.purple .tag{fill:#8a6fb0}
+  .travel-box.green .tag{fill:#7a9a3a}
+
+  /* Pins */
+  .pin{fill:#0a1e2e;stroke:#2a587d;stroke-width:1.5}
+  .pin.on{fill:#083048;stroke:var(--accent);filter:drop-shadow(0 0 5px rgba(73,224,255,.7))}
+  .pin.reg-on{fill:#1a1030;stroke:var(--reg);filter:drop-shadow(0 0 5px rgba(181,139,255,.7))}
+  .pindigit{
+    fill:var(--muted);font-family:var(--mono);font-size:10px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;pointer-events:none;
+  }
+  .pin.on + .pindigit,
+  .pin.reg-on + .pindigit{fill:var(--accent)}
+  .pin.reg-on + .pindigit{fill:var(--reg)}
+
+  /* ALU block & labels */
+  .alu-body{fill:var(--gate);stroke:var(--accent-dim);stroke-width:2}
+  .alu-body.active{fill:var(--gate-on);stroke:var(--accent);filter:drop-shadow(0 0 12px rgba(73,224,255,.5))}
+  .alu-label{
+    fill:var(--accent);font-family:var(--mono);font-size:18px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;letter-spacing:2px;pointer-events:none;
+  }
+  .alu-sublabel{
+    fill:var(--muted);font-family:var(--mono);font-size:11px;
+    text-anchor:middle;dominant-baseline:middle;pointer-events:none;
+  }
+  /* Calculator-style mini display inside the ALU */
+  .alu-screen{
+    fill:#040d15;stroke:#1a3a52;stroke-width:1.5;
+  }
+  .alu-screen.active{stroke:var(--accent);filter:drop-shadow(0 0 6px rgba(73,224,255,.5))}
+  .alu-screen-text{
+    fill:#7fffb3;font-family:var(--mono);font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;
+    letter-spacing:1px;pointer-events:none;
+    filter:drop-shadow(0 0 4px rgba(127,255,179,.5));
+  }
+  .alu-screen-text.equation{font-size:18px}
+  .alu-screen-text.equals  {font-size:16px;fill:#ffcc44;filter:drop-shadow(0 0 5px rgba(255,204,68,.6))}
+  .alu-screen-text.fromreg {font-size:18px;fill:var(--reg);filter:drop-shadow(0 0 6px rgba(181,139,255,.7))}
+
+  /* Register block */
+  .reg-body{fill:#1a1030;stroke:#5a3d8a;stroke-width:2}
+  .reg-body.active{stroke:var(--reg);filter:drop-shadow(0 0 10px rgba(181,139,255,.5))}
+  .reg-label{
+    fill:var(--reg);font-family:var(--mono);font-size:14px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;letter-spacing:1px;
+  }
+  .reg-cell{fill:#0a0518;stroke:#3d2a5a;stroke-width:1}
+  .reg-cell.filled{fill:#1a1030;stroke:var(--reg);filter:drop-shadow(0 0 4px rgba(181,139,255,.6))}
+  .reg-value{
+    fill:var(--reg);font-family:var(--mono);font-size:14px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;
+  }
+
+  .bitlabel{fill:var(--muted);font-family:var(--mono);font-size:11px;text-anchor:end;dominant-baseline:middle}
+  .group-label{
+    fill:#bfe8ff;font-family:var(--mono);font-size:12px;font-weight:700;
+    text-anchor:middle;letter-spacing:2px;
+  }
+  .group-sublabel{
+    fill:var(--muted);font-family:var(--mono);font-size:9px;
+    letter-spacing:.5px;text-anchor:end;
+  }
+  .group-sublabel.hold{fill:var(--hold)}
+  /* Dashed container showing that C is a holding register, not an ALU input bus.
+     Uses lime-green so it is visually distinct from the main result register
+     (which is purple). */
+  .holding-reg-box{
+    fill:rgba(30,48,8,.25);stroke:var(--hold);stroke-width:1.2;
+    stroke-dasharray:5 4;pointer-events:none;
+  }
+  .holding-reg-note{
+    fill:var(--hold);font-family:var(--mono);font-size:10px;
+    text-anchor:middle;pointer-events:none;opacity:.85;
+  }
+
+  /* Narrator / panels */
+  .narrator{
+    background:var(--panel);border:1px solid #2a587d;border-radius:10px;
+    padding:14px 18px;margin-bottom:14px;min-height:60px;font-size:14px;line-height:1.5;
+  }
+  .narrator .step{color:var(--accent);font-weight:700;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:block}
+  .narrator .cycle{color:var(--reg);font-weight:700;font-family:var(--mono);font-size:12px;letter-spacing:2px;margin-right:8px}
+
+  .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+  .mini-panel{
+    background:var(--panel);border:1px solid #163048;border-radius:10px;padding:12px 14px;
+  }
+  .mini-panel .title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+  .mini-panel .value{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent)}
+  .mini-panel.reg-panel .value{color:var(--reg)}
+  .mini-panel .binary{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:4px;word-break:break-all}
+
+  /* Floating runner flag */
+  .runflag{
+    position:absolute;pointer-events:none;z-index:10;
+    background:linear-gradient(180deg,#ffd966,#ffbb33);color:#1a0f00;
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    padding:6px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 12px rgba(255,204,68,.6);
+    max-width:300px;white-space:normal;line-height:1.35;
+    transform:translate(-50%,-130%);opacity:0;transition:opacity .15s;
+  }
+  .runflag.show{opacity:1}
+  .runflag b{color:#1a0f00}
+
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
+  footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<h1>ALU Structure & Register Chaining <span class="sub">— the missing piece between bits and programs</span></h1>
+<p class="tagline">
+  This visualizer shows the <b>block-level structure</b> of an ALU (not the gates inside) plus a <b>register file</b> sitting next to it.
+  Pick a bit-width, enter up to three numbers, and press <b>GO</b> to watch the CPU add them using the ALU
+  <b>twice</b> — saving the first result into a register, then feeding it back in.
+  For gate-level detail, see <a href="index.html">index.html</a>.
+  For background theory, see <a href="foundations.md">foundations.md §11</a>.
+</p>
+
+<div class="controls">
+  <div class="control-group">
+    <label for="width">ALU bit-width</label>
+    <select id="width">
+      <option value="4">4-bit (0–15)</option>
+      <option value="8" selected>8-bit (0–255)</option>
+      <option value="16">16-bit (0–65535)</option>
+    </select>
+  </div>
+  <div class="control-group narrow">
+    <label for="inA">Number A</label>
+    <input type="number" id="inA" min="0" value="0">
+    <div class="hint" id="hintA">max 255</div>
+  </div>
+  <div class="control-group narrow">
+    <label for="inB">Number B</label>
+    <input type="number" id="inB" min="0" value="0">
+    <div class="hint" id="hintB">max 255</div>
+  </div>
+  <div class="control-group narrow">
+    <label for="inC">Number C <span style="color:var(--muted)">(optional)</span></label>
+    <input type="number" id="inC" min="0" value="" placeholder="leave empty">
+    <div class="hint" id="hintC">max 255</div>
+  </div>
+  <div class="control-group">
+    <label for="speed">Animation speed</label>
+    <input type="range" id="speed" min="1" max="10" value="5" style="width:140px">
+  </div>
+  <button class="go" id="goBtn">▶ COMPUTE</button>
+  <button class="clear" id="clearBtn">CLEAR</button>
+</div>
+
+<div class="narrator" id="narrator">
+  <span class="step">Ready</span>
+  Choose a bit-width and enter up to three numbers. Press <b>COMPUTE</b> to watch the ALU add them. A real ALU has only <b>two input buses (A and B)</b>. If you fill in a third number <b>C</b>, a dashed-purple <i>holding register</i> will appear — during the second cycle, C's value transfers onto the B-bus and the holding register disappears (exactly how real CPUs handle multi-operand math).
+</div>
+
+<div class="panels">
+  <div class="mini-panel">
+    <div class="title">Input A</div>
+    <div class="value" id="pA">0</div>
+    <div class="binary" id="bA">00000000</div>
+  </div>
+  <div class="mini-panel">
+    <div class="title">Input B</div>
+    <div class="value" id="pB">0</div>
+    <div class="binary" id="bB">00000000</div>
+  </div>
+  <div class="mini-panel">
+    <div class="title">C (holding reg.)</div>
+    <div class="value" id="pC">—</div>
+    <div class="binary" id="bC">—</div>
+  </div>
+  <div class="mini-panel reg-panel">
+    <div class="title">Register (intermediate)</div>
+    <div class="value" id="pReg">—</div>
+    <div class="binary" id="bReg">—</div>
+  </div>
+  <div class="mini-panel">
+    <div class="title">Final result R</div>
+    <div class="value" id="pR" style="color:#7fffb3">—</div>
+    <div class="binary" id="bR">—</div>
+  </div>
+</div>
+
+<div class="stagebox" style="position:relative">
+  <svg id="stage" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="runflag" class="runflag"></div>
+</div>
+
+<footer>
+  Educational companion to <a href="index.html">the gate-level ALU visualizer</a>.
+  Showcases <b>operand buses</b>, the <b>register file</b>, and <b>multi-cycle chaining</b> for adding more than two numbers.
+</footer>
+
+<script>
+/* ===========================================================
+   ALU STRUCTURE VISUALIZER
+   - Shows block-level layout: A bus, B bus, ALU, R bus, register
+   - Dynamic bit-width (4, 8, 16)
+   - Up to 3 operand inputs → chained through register
+=========================================================== */
+
+const svg = document.getElementById('stage');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent){
+  const e = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(e);
+  return e;
+}
+
+/* State */
+const state = {
+  bits: 8,
+  A: 0, B: 0, C: 0,
+  speed: 5,
+  animating: false,
+};
+
+/* DOM refs */
+const elWidth   = document.getElementById('width');
+const elA       = document.getElementById('inA');
+const elB       = document.getElementById('inB');
+const elC       = document.getElementById('inC');
+const elSpeed   = document.getElementById('speed');
+const elGo      = document.getElementById('goBtn');
+const elClear   = document.getElementById('clearBtn');
+const elNar     = document.getElementById('narrator');
+const elFlag    = document.getElementById('runflag');
+
+const hintA = document.getElementById('hintA');
+const hintB = document.getElementById('hintB');
+const hintC = document.getElementById('hintC');
+
+const pA = document.getElementById('pA'), bA = document.getElementById('bA');
+const pB = document.getElementById('pB'), bB = document.getElementById('bB');
+const pC = document.getElementById('pC'), bC = document.getElementById('bC');
+const pReg = document.getElementById('pReg'), bReg = document.getElementById('bReg');
+const pR = document.getElementById('pR'), bR = document.getElementById('bR');
+
+/* Helpers */
+function baseDelay(){
+  // speed=1 slow, 10 fast
+  return 350 + (10 - state.speed) * 300;
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function maxVal(bits){ return (1 << bits) - 1; }
+function toBin(v, bits){ return (v & maxVal(bits)).toString(2).padStart(bits, '0'); }
+
+/* Geometry — depends on bit width */
+let GEOM = null;
+function computeGeom(){
+  const bits = state.bits;
+  // pin cell width & spacing
+  const cellW = bits <= 4 ? 34 : bits <= 8 ? 24 : 16;
+  const gap = 3;
+  const busW = bits * (cellW + gap) - gap;
+  const topPad = 90;
+  const yA = topPad;
+  const yB = topPad + 70;
+  const yC = topPad + 140;
+  const aluX = 430, aluY = topPad - 20, aluW = 160, aluH = 220;
+  const regX = aluX + aluW + 150;
+  const regY = topPad - 10;
+  const regW = busW + 40, regH = 70;
+  const busX = 90;   // left edge where A/B/C buses start
+  return {
+    bits, cellW, gap, busW,
+    topPad,
+    yA, yB, yC,
+    aluX, aluY, aluW, aluH,
+    aluCX: aluX + aluW/2, aluCY: aluY + aluH/2,
+    regX, regY, regW, regH,
+    regCX: regX + regW/2, regCY: regY + regH/2,
+    busX,
+    svgW: Math.max(1000, regX + regW + 60),
+    svgH: 560,
+  };
+}
+
+/* Entities built on rebuild() */
+let entities = null;
+
+function rebuild(){
+  svg.innerHTML = '';
+  GEOM = computeGeom();
+  const g = GEOM;
+  svg.setAttribute('viewBox', `0 0 ${g.svgW} ${g.svgH}`);
+
+  entities = {
+    A: {pins:[], digits:[]},
+    B: {pins:[], digits:[]},
+    C: {pins:[], digits:[]},
+    R: {pins:[], digits:[]},
+    wires: {},
+  };
+
+  // Helpers
+  function drawBus(yRow, label, target, opts = {}){
+    const {sublabel, sublabelClass = '', bitPrefix, parent} = opts;
+    // If no explicit bit prefix, fall back to the first word of the label.
+    const prefix = bitPrefix || label.split(' ')[0];
+    // Group label — vertically centered on the pin row when there's no sublabel,
+    // slightly raised when a sublabel sits underneath it.
+    const labelY = sublabel ? yRow - 2 : yRow + 5;
+    el('text',{x: g.busX - 36, y: labelY, class:'group-label', 'text-anchor':'end'}, parent).textContent = label;
+    if(sublabel){
+      const t = el('text',{x: g.busX - 36, y: yRow + 12, class: 'group-sublabel ' + sublabelClass}, parent);
+      t.textContent = sublabel;
+    }
+    for(let i = g.bits - 1; i >= 0; i--){
+      const idx = g.bits - 1 - i; // visual left-to-right: MSB first
+      const cx = g.busX + idx * (g.cellW + g.gap) + g.cellW/2;
+      const cy = yRow;
+      const rect = el('rect', {
+        x: cx - g.cellW/2, y: cy - 14, width: g.cellW, height: 28,
+        rx: 4, ry: 4, class:'pin'
+      }, parent);
+      const digit = el('text',{x:cx, y:cy, class:'pindigit'}, parent);
+      digit.textContent = '0';
+      target.pins[i] = rect;
+      target.digits[i] = digit;
+      el('text',{x:cx, y:cy + 26, class:'bitlabel', 'text-anchor':'middle','font-size':'9'}, parent).textContent = `${prefix}${i}`;
+    }
+  }
+
+  // A and B are always-visible input buses
+  drawBus(g.yA, 'Bus A', entities.A, {bitPrefix: 'A'});
+  drawBus(g.yB, 'Bus B', entities.B, {bitPrefix: 'B'});
+
+  // C row: all its visuals live inside a single group so we can show/hide/fade
+  // the entire holding-register unit in one move.
+  const cGroup = el('g', {id: 'c-row-group'});
+  entities.cGroup = cGroup;
+
+  const cBoxPadX = 14;
+  const cBoxPadTop = 20;   // above the pin centers
+  const cBoxPadBot = 36;   // below the pin centers, to cover the bit labels
+  el('rect', {
+    x: g.busX - cBoxPadX,
+    y: g.yC - cBoxPadTop,
+    width: g.busW + cBoxPadX * 2,
+    height: cBoxPadTop + cBoxPadBot,
+    rx: 8, ry: 8,
+    class: 'holding-reg-box',
+  }, cGroup);
+
+  // Note: draw "C" without a left-side sublabel (which was getting clipped
+  // off the viewport). The "holding register" identifier is shown as the
+  // header line of the notes below the dashed box instead.
+  drawBus(g.yC, 'C', entities.C, {
+    bitPrefix: 'C',
+    parent: cGroup,
+  });
+
+  // Centered notes below the dashed box. First line acts as the header label
+  // (was previously on the left as a cut-off sublabel).
+  el('text', {
+    x: g.busX + g.busW / 2,
+    y: g.yC + cBoxPadBot + 18,
+    class: 'holding-reg-note',
+    'font-size': 12, 'font-weight': 700,
+    style: 'opacity:1',
+  }, cGroup).textContent = 'holding register';
+  el('text', {
+    x: g.busX + g.busW / 2,
+    y: g.yC + cBoxPadBot + 34,
+    class: 'holding-reg-note',
+  }, cGroup).textContent = '↑ waits here until cycle 2, then transfers to Bus B.';
+  el('text', {
+    x: g.busX + g.busW / 2,
+    y: g.yC + cBoxPadBot + 48,
+    class: 'holding-reg-note',
+  }, cGroup).textContent = '(ALUs only have two input buses: A and B.)';
+
+  // Bus end x (right edge of bus group)
+  const busRightX = g.busX + g.busW;
+
+  // ALU block
+  const aluRect = el('rect', {
+    x: g.aluX, y: g.aluY, width: g.aluW, height: g.aluH, rx: 14, ry: 14,
+    class: 'alu-body', id: 'alu-body'
+  });
+  entities.aluRect = aluRect;
+  el('text',{x: g.aluCX, y: g.aluY + 22, class:'alu-label'}).textContent = 'ALU';
+  el('text',{x: g.aluCX, y: g.aluY + 40, class:'alu-sublabel'}).textContent = `${g.bits}-bit  •  2-input`;
+
+  // Calculator-style mini display inside the ALU (shows the equation live)
+  const screenW = g.aluW - 24;
+  const screenH = 60;
+  const screenX = g.aluX + 12;
+  const screenY = g.aluCY - screenH/2 + 10;
+  const screenRect = el('rect', {
+    x: screenX, y: screenY, width: screenW, height: screenH, rx: 6, ry: 6,
+    class: 'alu-screen', id: 'alu-screen'
+  });
+  entities.aluScreenRect = screenRect;
+  entities.aluScreenText = el('text', {
+    x: g.aluCX, y: screenY + screenH/2,
+    class: 'alu-screen-text equation', id: 'alu-screen-text'
+  });
+  entities.aluScreenText.textContent = '—';
+
+  // Bottom sublabel
+  el('text',{x: g.aluCX, y: g.aluY + g.aluH - 14, class:'alu-sublabel'}).textContent = '(result → register)';
+
+  // Mark input ports on ALU
+  const aluAportY = g.yA;
+  const aluBportY = g.yB;
+  const aluRportY = (g.yA + g.yB) / 2;
+  el('text',{x: g.aluX + 8, y: aluAportY + 4, class:'alu-sublabel','text-anchor':'start'}).textContent = 'A';
+  el('text',{x: g.aluX + 8, y: aluBportY + 4, class:'alu-sublabel','text-anchor':'start'}).textContent = 'B';
+  el('text',{x: g.aluX + g.aluW - 8, y: aluRportY + 4, class:'alu-sublabel','text-anchor':'end'}).textContent = 'R';
+
+  // Wires: A bus → ALU A port
+  entities.wires.A_to_alu = el('path',{
+    d:`M${busRightX + 5},${g.yA} L${g.aluX},${g.yA}`,
+    class:'wire'
+  });
+  // Wires: B bus → ALU B port
+  entities.wires.B_to_alu = el('path',{
+    d:`M${busRightX + 5},${g.yB} L${g.aluX},${g.yB}`,
+    class:'wire'
+  });
+  // Wire: ALU R → Register (right side)
+  entities.wires.alu_to_reg = el('path',{
+    d:`M${g.aluX + g.aluW},${aluRportY} L${g.regX},${g.regCY}`,
+    class:'wire regwire'
+  });
+  // Wire: Register feedback → ALU A input (looping back around on top)
+  // Route: from reg top → up → left → down into A bus wire
+  const loopY = g.yA - 55;
+  entities.wires.reg_to_A = el('path',{
+    d:`M${g.regCX},${g.regY} L${g.regCX},${loopY} L${busRightX - 20},${loopY} L${busRightX - 20},${g.yA - 20} L${busRightX + 5},${g.yA}`,
+    class:'wire regwire'
+  });
+  // Wire: C holding-register → B-bus (the "transfer" path used in cycle 2).
+  // Route: start at the right edge of C's pin row, step outward to a clear
+  // corridor to the right of the bus area, go straight up to B's row, then
+  // step back in to meet B's right edge. Avoids overlapping any bus pins.
+  // Lives inside the C group so it fades out with the rest of the C visuals.
+  const transferX = busRightX + 18;
+  entities.wires.C_to_B = el('path',{
+    d:`M${busRightX + 5},${g.yC} L${transferX},${g.yC} L${transferX},${g.yB} L${busRightX + 5},${g.yB}`,
+    class:'wire'
+  }, cGroup);
+
+  // Register block
+  el('rect',{
+    x: g.regX, y: g.regY, width: g.regW, height: g.regH, rx: 10, ry: 10,
+    class:'reg-body', id:'reg-body'
+  });
+  el('text',{x: g.regCX, y: g.regY + 16, class:'reg-label'}).textContent = 'REGISTER';
+  el('text',{x: g.regCX, y: g.regY + 32, class:'alu-sublabel'}).textContent = '(scratchpad)';
+  // Cell showing the stored value
+  const cellH = 28, cellY = g.regY + 36;
+  const regCell = el('rect',{
+    x: g.regX + 12, y: cellY, width: g.regW - 24, height: cellH, rx: 4, ry: 4,
+    class:'reg-cell', id:'reg-cell'
+  });
+  entities.regCell = regCell;
+  entities.regText = el('text',{x: g.regCX, y: cellY + cellH/2 + 1, class:'reg-value', id:'reg-text'});
+  entities.regText.textContent = 'empty';
+
+  // Small arrow labels on wires
+  function arrowLabel(x, y, text, color){
+    const t = el('text',{x,y,class:'alu-sublabel','text-anchor':'middle'});
+    t.setAttribute('fill', color || 'var(--muted)');
+    t.textContent = text;
+    return t;
+  }
+  arrowLabel((busRightX + g.aluX) / 2, g.yA - 8, 'A bus', '#7a93a8');
+  arrowLabel((busRightX + g.aluX) / 2, g.yB - 8, 'B bus', '#7a93a8');
+  arrowLabel((g.aluX + g.aluW + g.regX) / 2, aluRportY - 22, 'R bus', '#b58bff');
+  arrowLabel((g.regCX + busRightX) / 2 + 60, loopY - 6, '↺ feedback loop', '#b58bff');
+
+  // Initial render
+  renderBusValues();
+}
+
+/* Render bus values onto pins */
+function setPinDigit(pins, digits, value){
+  const bits = state.bits;
+  for(let i = 0; i < bits; i++){
+    const bit = (value >> i) & 1;
+    pins[i].setAttribute('class', 'pin' + (bit ? ' on' : ''));
+    digits[i].textContent = bit;
+  }
+}
+function clearBus(pins, digits){
+  const bits = state.bits;
+  for(let i = 0; i < bits; i++){
+    pins[i].setAttribute('class', 'pin');
+    digits[i].textContent = '0';
+  }
+}
+function setPinDigitReg(pins, digits, value){
+  const bits = state.bits;
+  for(let i = 0; i < bits; i++){
+    const bit = (value >> i) & 1;
+    pins[i].setAttribute('class', 'pin' + (bit ? ' reg-on' : ''));
+    digits[i].textContent = bit;
+  }
+}
+
+function renderBusValues(){
+  const max = maxVal(state.bits);
+  const A = state.A & max, B = state.B & max, C = state.C & max;
+  const hasC = (elC.value !== '' && !isNaN(+elC.value));
+  setPinDigit(entities.A.pins, entities.A.digits, A);
+  setPinDigit(entities.B.pins, entities.B.digits, B);
+  setPinDigit(entities.C.pins, entities.C.digits, C);
+  pA.textContent = A; bA.textContent = toBin(A, state.bits);
+  pB.textContent = B; bB.textContent = toBin(B, state.bits);
+  if(hasC){
+    pC.textContent = C; bC.textContent = toBin(C, state.bits);
+  } else {
+    pC.textContent = '—'; bC.textContent = '—';
+  }
+  // Show/hide the whole C holding-register unit based on whether a C value was provided
+  setCRowVisible(hasC);
+}
+
+/* Show or hide the entire C holding-register group (dashed box, pins, labels,
+   note, and C→B transfer wire). Called from input handlers and at reset. */
+function setCRowVisible(visible){
+  if(!entities || !entities.cGroup) return;
+  entities.cGroup.style.transition = '';
+  entities.cGroup.style.opacity = visible ? '1' : '0';
+  entities.cGroup.style.pointerEvents = visible ? '' : 'none';
+}
+
+/* Wire + ALU helpers */
+function setWire(wire, cls){
+  const keep = (wire.getAttribute('class') || '').includes('regwire') ? 'wire regwire' : 'wire';
+  wire.setAttribute('class', keep + (cls ? ' ' + cls : ''));
+}
+
+/* =========================================================
+   traceWire(wire, opts)
+   Draws a bright "pen stroke" that progressively extends along
+   the wire, with a small labelled box traveling at the pen tip
+   showing the decimal value being transmitted.
+   opts:
+     value      — decimal number shown in the box
+     tag        — small uppercase label above the value (e.g. "A", "R")
+     color      — 'cyan' | 'purple' | 'yellow'
+     duration   — ms
+     keepLit    — if true, leaves the bright stroke on the wire after
+                  the trace completes (otherwise it fades out)
+========================================================= */
+function traceWire(wire, opts){
+  const {value, tag, color='cyan', duration=800, keepLit=true} = opts;
+  const d = wire.getAttribute('d');
+  const length = wire.getTotalLength();
+
+  // Bright tracer overlay
+  const tracer = el('path', {
+    d, class: `tracer ${color}`,
+    'stroke-dasharray': length,
+    'stroke-dashoffset': length,
+  });
+
+  // Traveling value box
+  const box = el('g', {class: `travel-box ${color}`});
+  // Size the rect to fit the content
+  const w = 54, h = 34;
+  el('rect', {x:-w/2, y:-h/2, width:w, height:h, rx:8, ry:8}, box);
+  if(tag){
+    el('text', {x:0, y:-4, class:'tag'}, box).textContent = tag;
+  }
+  const valTxt = el('text', {x:0, y:tag ? 10 : 2}, box);
+  valTxt.textContent = value;
+
+  // Position box at starting point
+  const p0 = wire.getPointAtLength(0);
+  box.setAttribute('transform', `translate(${p0.x},${p0.y})`);
+
+  return new Promise(res => {
+    const start = performance.now();
+    function frame(now){
+      const t = Math.min(1, (now - start) / duration);
+      // Ease-in-out for smoother feel
+      const eased = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t;
+      tracer.setAttribute('stroke-dashoffset', length * (1 - eased));
+      const p = wire.getPointAtLength(length * eased);
+      box.setAttribute('transform', `translate(${p.x},${p.y})`);
+      if(t < 1){
+        requestAnimationFrame(frame);
+      } else {
+        // Cleanup
+        box.remove();
+        if(keepLit){
+          // Leave the bright stroke on — replace tracer with a clean "lit" version
+          tracer.setAttribute('stroke-dasharray', '');
+          tracer.setAttribute('stroke-dashoffset', '0');
+        } else {
+          // Fade out
+          tracer.style.transition = 'opacity .3s';
+          tracer.style.opacity = '0';
+          setTimeout(() => tracer.remove(), 320);
+        }
+        res();
+      }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* Remove all tracer overlays (used on reset) */
+function clearTracers(){
+  svg.querySelectorAll('.tracer, .travel-box').forEach(e => e.remove());
+}
+
+/* Floating flag */
+function getSvgPoint(el){
+  // Return center of the SVG element in screen coords
+  const bb = el.getBoundingClientRect();
+  return {x: bb.left + bb.width/2, y: bb.top + bb.height/2};
+}
+function showFlag(atEl, html, dur){
+  return new Promise(res => {
+    const p = getSvgPoint(atEl);
+    elFlag.style.left = p.x + 'px';
+    elFlag.style.top = p.y + 'px';
+    elFlag.innerHTML = html;
+    elFlag.classList.add('show');
+    setTimeout(() => {
+      elFlag.classList.remove('show');
+      setTimeout(res, 180);
+    }, dur);
+  });
+}
+
+/* Narration */
+function narrate(cycleLabel, stepLabel, body){
+  let html = '';
+  if(cycleLabel) html += `<span class="cycle">${cycleLabel}</span>`;
+  if(stepLabel)  html += `<span class="step">${stepLabel}</span>`;
+  html += body;
+  elNar.innerHTML = html;
+}
+
+/* ALU glow */
+function setAluActive(on){
+  const body = document.getElementById('alu-body');
+  body.setAttribute('class', 'alu-body' + (on ? ' active' : ''));
+  const screen = document.getElementById('alu-screen');
+  if(screen) screen.setAttribute('class', 'alu-screen' + (on ? ' active' : ''));
+}
+
+/* Update the mini calculator display inside the ALU.
+   Accepts either:
+     - a plain string (rendered in the variant's default color), or
+     - an array of segments: [{text, reg?}] where `reg: true` paints that
+       segment in register-purple. Other segments use the variant's color.
+   variant: 'equation' (green default) or 'equals' (yellow default). */
+function setAluScreen(parts, variant='equation'){
+  const t = document.getElementById('alu-screen-text');
+  if(!t) return;
+  // Clear any existing tspans/text
+  while(t.firstChild) t.removeChild(t.firstChild);
+  t.setAttribute('class', 'alu-screen-text ' + variant);
+  if(typeof parts === 'string'){
+    t.textContent = parts;
+    return;
+  }
+  parts.forEach(p => {
+    const ts = document.createElementNS(SVG_NS, 'tspan');
+    ts.textContent = p.text;
+    if(p.reg){
+      ts.setAttribute('fill', 'var(--reg)');
+      ts.setAttribute('style', 'filter: drop-shadow(0 0 6px rgba(181,139,255,.8))');
+    }
+    t.appendChild(ts);
+  });
+}
+function setRegActive(on, value){
+  const body = document.getElementById('reg-body');
+  body.setAttribute('class', 'reg-body' + (on ? ' active' : ''));
+  const cell = document.getElementById('reg-cell');
+  cell.setAttribute('class', 'reg-cell' + (value != null ? ' filled' : ''));
+  const txt = document.getElementById('reg-text');
+  if(value == null){
+    txt.textContent = 'empty';
+    txt.setAttribute('fill', 'var(--muted)');
+    pReg.textContent = '—'; bReg.textContent = '—';
+  } else {
+    txt.textContent = `${value}  (${toBin(value, state.bits)})`;
+    txt.setAttribute('fill', 'var(--reg)');
+    pReg.textContent = value; bReg.textContent = toBin(value, state.bits);
+  }
+}
+
+/* Reset visuals between runs */
+function resetVisuals(){
+  svg.querySelectorAll('.wire').forEach(w => {
+    const isReg = (w.getAttribute('class') || '').includes('regwire');
+    w.setAttribute('class', isReg ? 'wire regwire' : 'wire');
+  });
+  clearTracers();
+  setAluActive(false);
+  setRegActive(false, null);
+  setAluScreen('—', 'equation');
+  pR.textContent = '—';
+  bR.textContent = '—';
+  // Restore the C holding-register visibility to whatever the current C input
+  // calls for (it may have been faded out during a previous cycle-2 run).
+  const hasC = (elC.value !== '' && !isNaN(+elC.value));
+  setCRowVisible(hasC);
+}
+
+/* ============ MAIN COMPUTE ============ */
+async function compute(){
+  if(state.animating) return;
+  state.animating = true;
+  elGo.disabled = true;
+
+  const bits = state.bits, max = maxVal(bits);
+  const A = state.A & max, B = state.B & max;
+  const hasC = (elC.value !== '' && !isNaN(+elC.value));
+  const C = hasC ? (state.C & max) : null;
+
+  resetVisuals();
+  renderBusValues();
+
+  const D = baseDelay();
+
+  // ============ CYCLE 1: A + B ============
+  narrate('CYCLE 1', 'STEP 1 — load A and B onto input buses',
+    `The CPU routes <b>A = ${A}</b> onto the A-bus and <b>B = ${B}</b> onto the B-bus. Watch the decimal values travel along their wires toward the ALU.`);
+  await sleep(D * 0.4);
+
+  // Trace A → ALU (cyan tracer + box showing decimal A)
+  await traceWire(entities.wires.A_to_alu, {
+    value: A, tag: 'A', color: 'cyan', duration: D * 1.3, keepLit: true,
+  });
+  // Mini display: A has landed, show it + the pending "+"
+  setAluScreen(`${A}  +`, 'equation');
+  await sleep(D * 0.15);
+
+  // Trace B → ALU (run right after, could also be concurrent; sequential reads clearer)
+  await traceWire(entities.wires.B_to_alu, {
+    value: B, tag: 'B', color: 'cyan', duration: D * 1.3, keepLit: true,
+  });
+  // Mini display: now shows the full pending equation
+  setAluScreen(`${A} + ${B}`, 'equation');
+  await sleep(D * 0.15);
+
+  narrate('CYCLE 1', 'STEP 2 — ALU computes A + B',
+    `Both operands have arrived. The ALU's internal ${bits} full-adders all fire in parallel and produce the sum: <b>${A} + ${B} = ${A + B}</b>.`);
+  setAluActive(true);
+  await sleep(D * 0.6);
+
+  const sum1 = (A + B) & max;
+  const cout1 = ((A + B) > max) ? 1 : 0;
+
+  // Mini display: flash the answer
+  setAluScreen(`${A} + ${B} = ${A + B}`, 'equals');
+  await sleep(D * 0.9);
+
+  narrate('CYCLE 1', 'STEP 3 — result flows into the register',
+    `The R-bus carries the result <b>${sum1}</b>${cout1 ? ' (with overflow)' : ''} out of the ALU and into the register. The register <b>catches this value</b> so we can reuse it.`);
+  setAluActive(false);
+  // Fade the input tracers now that the value has been consumed
+  fadeAllTracers();
+  await sleep(100);
+
+  // Trace R → Register (purple tracer + box showing result)
+  await traceWire(entities.wires.alu_to_reg, {
+    value: sum1, tag: 'R', color: 'purple', duration: D * 1.2, keepLit: true,
+  });
+  setRegActive(true, sum1);
+  await sleep(D * 0.5);
+
+  if(!hasC){
+    // Single addition — final answer
+    pR.textContent = sum1;
+    bR.textContent = toBin(sum1, bits) + (cout1 ? '  (Cout=1)' : '');
+    narrate('DONE', `Final answer: ${A} + ${B} = ${sum1}`,
+      cout1
+        ? `The answer <b>overflowed ${bits} bits</b> — Cout = 1. The low ${bits} bits of the true answer are shown in R; the "extra 1" would be stored in a flag register.`
+        : `The answer fits in ${bits} bits. The register now holds <b>${sum1}</b>, which is also the final result.`);
+    state.animating = false;
+    elGo.disabled = false;
+    return;
+  }
+
+  // ============ CYCLE 2: Register + C ============
+  await sleep(D * 0.6);
+  narrate('CYCLE 2', 'STEP 4 — feed the register back into the ALU',
+    `Now the clever part: the register's value (<b>${sum1}</b>) is routed <b>back onto the A-bus</b>. Watch the purple box travel the feedback loop — same A pins, new value.`);
+
+  // Fade prior cyan tracers (A and B wires) so the purple feedback reads clearly
+  fadeAllTracers();
+  await sleep(120);
+
+  // Mini display: clear previous equation; show the register value incoming
+  setAluScreen('—', 'equation');
+
+  // Trace register → A-input (purple, riding the feedback loop)
+  await traceWire(entities.wires.reg_to_A, {
+    value: sum1, tag: 'R→A', color: 'purple', duration: D * 1.6, keepLit: true,
+  });
+  // Update A-pins visually to hold register value (purple "reg-on" styling)
+  setPinDigitReg(entities.A.pins, entities.A.digits, sum1);
+  // Continue the purple stroke from the bus into the ALU's A port so the
+  // "this value came from the register" story stays visible all the way in.
+  await traceWire(entities.wires.A_to_alu, {
+    value: sum1, tag: 'A', color: 'purple', duration: D * 0.6, keepLit: true,
+  });
+  // Mini display: running total (from register) is purple, the '+' stays green
+  setAluScreen([
+    { text: String(sum1), reg: true },
+    { text: '  +' },
+  ], 'equation');
+  await sleep(D * 0.3);
+
+  narrate('CYCLE 2', 'STEP 5 — C transfers onto the B-bus',
+    `The third number C (<b>${C}</b>) has been waiting in its <b>holding register</b>. <b>ALUs only have two input buses (A and B)</b>, so C's value now <b>transfers down onto the B-bus</b>, replacing the old B. After that, the holding register is no longer needed — it disappears.`);
+
+  // Clear old B-bus visual (old B is about to be overwritten)
+  clearBus(entities.B.pins, entities.B.digits);
+
+  // Trace the transfer: C holding register → B-bus, in lime-green to match
+  // the holding register's color. Distinct from purple (main result register)
+  // and from cyan (fresh bus-borne operands), telling the user "this value
+  // came from the C holding unit, which is a SEPARATE register".
+  await traceWire(entities.wires.C_to_B, {
+    value: C, tag: 'C→B', color: 'green', duration: D * 1.2, keepLit: false,
+  });
+
+  // B pins now carry C's value (normal cyan "on" — it's a fresh operand from B's POV)
+  setPinDigit(entities.B.pins, entities.B.digits, C);
+
+  // Fade out the entire C holding-register unit — it has served its purpose.
+  if(entities.cGroup){
+    entities.cGroup.style.transition = 'opacity .45s';
+    entities.cGroup.style.opacity = '0';
+  }
+  await sleep(D * 0.25);
+
+  // Now trace the B bus → ALU B port as usual, carrying what is effectively C's value.
+  await traceWire(entities.wires.B_to_alu, {
+    value: C, tag: 'B', color: 'cyan', duration: D * 1.1, keepLit: true,
+  });
+
+  // Mini display: only the left operand (from register) is purple; '+' and C stay green
+  setAluScreen([
+    { text: String(sum1), reg: true },
+    { text: ` + ${C}` },
+  ], 'equation');
+  await sleep(D * 0.3);
+
+  narrate('CYCLE 2', 'STEP 6 — ALU computes (A+B) + C',
+    `The ALU now sees <b>A = ${sum1}</b> (the running total, from the register) and <b>B = ${C}</b> (the third number). Same 2-input hardware, second use: <b>${sum1} + ${C} = ${sum1 + C}</b>.`);
+  setAluActive(true);
+  await sleep(D * 0.6);
+
+  const finalSum = (sum1 + C) & max;
+  const cout2 = ((sum1 + C) > max) ? 1 : 0;
+
+  // Mini display: flash the final equation. Only the register-sourced value
+  // stays purple; the rest of the equation is yellow (the "=" highlight).
+  setAluScreen([
+    { text: String(sum1), reg: true },
+    { text: ` + ${C} = ${sum1 + C}` },
+  ], 'equals');
+  await sleep(D * 0.9);
+
+  narrate('CYCLE 2', 'STEP 7 — final result',
+    `The R-bus now carries the <b>final total</b>: ${A} + ${B} + ${C} = <b>${A + B + C}</b>${cout2 || cout1 ? ' (overflow occurred)' : ''}. The register catches it — ready for a fourth operand if needed.`);
+  setAluActive(false);
+  fadeAllTracers();
+  await sleep(120);
+
+  // Trace R → Register (final result traveling to register)
+  await traceWire(entities.wires.alu_to_reg, {
+    value: finalSum, tag: 'R', color: 'purple', duration: D * 1.2, keepLit: true,
+  });
+  setRegActive(true, finalSum);
+  pR.textContent = finalSum;
+  bR.textContent = toBin(finalSum, bits) + (cout2 ? '  (Cout=1 in cycle 2)' : '');
+
+  narrate('DONE', `✓ Answer: ${A} + ${B} + ${C} = ${A + B + C}`,
+    `The same 2-input ALU was used <b>twice</b>. The register held the intermediate result between cycles. To add 4 numbers you'd run 3 cycles; 5 numbers → 4 cycles; and so on. <b>This is how every CPU on Earth adds lists of numbers.</b>`);
+
+  state.animating = false;
+  elGo.disabled = false;
+}
+
+/* Fade any lingering tracers so the next stage reads cleanly */
+function fadeAllTracers(){
+  svg.querySelectorAll('.tracer').forEach(t => {
+    t.style.transition = 'opacity .35s';
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 400);
+  });
+}
+
+/* ============ EVENT WIRING ============ */
+function updateHints(){
+  const max = maxVal(state.bits);
+  hintA.textContent = `max ${max}`;
+  hintB.textContent = `max ${max}`;
+  hintC.textContent = `max ${max}`;
+  elA.setAttribute('max', max);
+  elB.setAttribute('max', max);
+  elC.setAttribute('max', max);
+}
+function clampInputs(){
+  const max = maxVal(state.bits);
+  state.A = Math.max(0, Math.min(max, parseInt(elA.value) || 0));
+  state.B = Math.max(0, Math.min(max, parseInt(elB.value) || 0));
+  if(elC.value === '' || isNaN(+elC.value)){
+    state.C = 0;
+  } else {
+    state.C = Math.max(0, Math.min(max, parseInt(elC.value) || 0));
+  }
+  elA.value = state.A;
+  elB.value = state.B;
+  if(elC.value !== '') elC.value = state.C;
+}
+
+elWidth.addEventListener('change', () => {
+  state.bits = parseInt(elWidth.value);
+  updateHints();
+  clampInputs();
+  rebuild();
+});
+elA.addEventListener('input', () => { clampInputs(); renderBusValues(); });
+elB.addEventListener('input', () => { clampInputs(); renderBusValues(); });
+elC.addEventListener('input', () => { clampInputs(); renderBusValues(); });
+elSpeed.addEventListener('input', () => { state.speed = parseInt(elSpeed.value); });
+
+elGo.addEventListener('click', compute);
+elClear.addEventListener('click', () => {
+  if(state.animating) return;
+  elA.value = 0; elB.value = 0; elC.value = '';
+  state.A = 0; state.B = 0; state.C = 0;
+  resetVisuals();
+  renderBusValues();
+  narrate('', 'CLEARED', 'All inputs zeroed. Enter new values and press COMPUTE.');
+});
+
+/* Init */
+updateHints();
+clampInputs();
+rebuild();
+narrate('', 'STEP 1', 'Press <b>COMPUTE</b> to watch the ALU add A + B (+ C if provided). Watch how the register catches the intermediate result and feeds it back for the second addition.');
+</script>
+</body>
+</html>

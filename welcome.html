@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Guardian — Boot Sequence Visualization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a12;
+    --panel: #12121f;
+    --text: #cfe8ff;
+    --muted: #7a93a8;
+    --accent: #49e0ff;
+    --accent-dim: #2a6a82;
+    --power: #ff4444;
+    --power-dim: #8a2222;
+    --success: #44ff88;
+    --warning: #ffaa00;
+    --wire-off: #1a2a3a;
+    --component: #1a1a2e;
+    --component-border: #2a3a5a;
+    --mono: 'Fira Code', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Background effects */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(73, 224, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(255, 68, 68, 0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(73, 224, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(73, 224, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  /* Corner decorations */
+  .corner {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+    opacity: 0.6;
+  }
+  .corner.tl { top: 20px; left: 20px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+  .corner.tr { top: 20px; right: 20px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+  .corner.bl { bottom: 20px; left: 20px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+  .corner.br { bottom: 20px; right: 20px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+  
+  /* Main container */
+  .container {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .header h1 {
+    font-family: var(--mono);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+    text-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+  }
+  
+  .header .subtitle {
+    font-family: var(--mono);
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  
+  /* Main content area with diagram and controls */
+  .main-stage {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    max-width: 1200px;
+    width: 100%;
+  }
+  
+  /* Power button section */
+  .power-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  
+  .power-btn {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #2a2a4a, #0f0f1a);
+    border: 3px solid var(--power-dim);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+      0 0 30px rgba(255, 51, 102, 0.3),
+      inset 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  .power-btn::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px dashed var(--power-dim);
+    opacity: 0.4;
+    animation: spin-slow 15s linear infinite;
+  }
+  
+  .power-btn:hover {
+    border-color: var(--power);
+    box-shadow: 
+      0 0 50px rgba(255, 51, 102, 0.6),
+      0 0 100px rgba(255, 51, 102, 0.3),
+      inset 0 0 30px rgba(255, 51, 102, 0.2);
+    transform: scale(1.08);
+  }
+  
+  .power-btn.active {
+    border-color: var(--success);
+    box-shadow: 
+      0 0 50px rgba(0, 255, 136, 0.6),
+      0 0 100px rgba(0, 255, 136, 0.3),
+      inset 0 0 30px rgba(0, 255, 136, 0.2);
+  }
+  
+  .power-icon {
+    font-size: 42px;
+    color: var(--power-dim);
+    transition: all 0.3s ease;
+  }
+  
+  .power-btn:hover .power-icon {
+    color: var(--power);
+  }
+  
+  .power-btn.active .power-icon {
+    color: var(--success);
+  }
+  
+  @keyframes spin-slow {
+    to { transform: rotate(360deg); }
+  }
+  
+  .power-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  
+  /* Visualization stage */
+  .stage-box {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--component-border);
+    border-radius: 16px;
+    padding: 16px;
+    overflow: hidden;
+    min-height: 350px;
+  }
+  
+  svg.stage {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, #0f1f2f 0%, var(--bg) 70%);
+    border-radius: 12px;
+  }
+  
+  /* Component styles */
+  .component-body {
+    fill: var(--component);
+    stroke: var(--component-border);
+    stroke-width: 2;
+    transition: all 0.4s ease;
+  }
+  
+  .component-body.active {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 12px rgba(73, 224, 255, 0.5));
+  }
+  
+  .component-body.done {
+    stroke: var(--success);
+    filter: drop-shadow(0 0 12px rgba(68, 255, 136, 0.5));
+  }
+  
+  .component-label {
+    fill: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  
+  .component-sublabel {
+    fill: var(--muted);
+    font-family: var(--mono);
+    font-size: 9px;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  
+  /* Wire styles */
+  .wire {
+    stroke: var(--wire-off);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  
+  .wire.on {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 6px rgba(73, 224, 255, 0.8));
+  }
+  
+  .wire.done {
+    stroke: var(--success);
+    filter: drop-shadow(0 0 6px rgba(68, 255, 136, 0.6));
+  }
+  
+  /* Tracer animation */
+  .tracer {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  
+  .tracer.cyan {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 6px rgba(73, 224, 255, 0.9));
+  }
+  
+  .tracer.green {
+    stroke: var(--success);
+    filter: drop-shadow(0 0 6px rgba(68, 255, 136, 0.9));
+  }
+  
+  /* Narrator panel */
+  .narrator {
+    background: var(--panel);
+    border: 1px solid var(--component-border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-top: 20px;
+    max-width: 800px;
+    min-height: 60px;
+  }
+  
+  .narrator .step-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+  
+  .narrator .step-title {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  
+  .narrator .step-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  
+  /* Progress indicator */
+  .progress-bar {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 15px;
+    max-width: 800px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    transition: width 0.4s ease;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  }
+  
+  /* Footer */
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 12px 24px;
+    background: rgba(5, 5, 8, 0.8);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(0, 212, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  
+  .footer .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .footer .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main-stage {
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .stage-box {
+      width: 100%;
+      min-height: 250px;
+    }
+    
+    .power-btn {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .power-icon {
+      font-size: 34px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="container">
+  <div class="header">
+    <h1>Digital Guardian</h1>
+    <div class="subtitle">Computer Boot Visualization</div>
+  </div>
+  
+  <div class="main-stage">
+    <div class="power-section">
+      <button class="power-btn" id="powerBtn" aria-label="Power On">
+        <span class="power-icon">⏻</span>
+      </button>
+      <div class="power-label">Power On</div>
+    </div>
+    
+    <div class="stage-box">
+      <svg id="stage" class="stage" viewBox="0 0 900 350" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+  
+  <div class="narrator" id="narrator">
+    <span class="step-label">System Offline</span>
+    <div class="step-title">Ready to Boot</div>
+    <div class="step-desc">Click the power button to begin the boot sequence visualization.</div>
+  </div>
+  
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="status">
+    <div class="status-dot"></div>
+    <span>System Ready</span>
+  </div>
+  <span>Digital Guardian v1.0</span>
+</div>
+
+<script>
+const svg = document.getElementById('stage');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(e);
+  return e;
+}
+
+// Boot process steps data (horizontal layout for 900x350)
+const bootSteps = [
+  {
+    id: 'psu',
+    name: 'PSU',
+    sub: 'Power',
+    desc: 'The Power Supply Unit receives AC electricity and converts it to DC power for all components.',
+    x: 30, y: 135, w: 75, h: 70
+  },
+  {
+    id: 'motherboard',
+    name: 'Motherboard',
+    sub: 'Main Board',
+    desc: 'The motherboard distributes power and provides communication pathways between components.',
+    x: 135, y: 135, w: 85, h: 70
+  },
+  {
+    id: 'cpu',
+    name: 'CPU',
+    sub: 'Processor',
+    desc: 'The CPU exits reset state and begins executing firmware from BIOS/UEFI.',
+    x: 250, y: 135, w: 75, h: 70
+  },
+  {
+    id: 'firmware',
+    name: 'BIOS/UEFI',
+    sub: 'Firmware',
+    desc: 'Firmware performs POST and hardware initialization.',
+    x: 355, y: 135, w: 85, h: 70
+  },
+  {
+    id: 'post',
+    name: 'POST',
+    sub: 'Self-Test',
+    desc: 'POST detects RAM, initializes graphics, and detects other hardware devices.',
+    x: 470, y: 135, w: 75, h: 70
+  },
+  {
+    id: 'bootdev',
+    name: 'Boot Device',
+    sub: 'SSD/HDD',
+    desc: 'Firmware searches for a bootable device (SSD, HDD, USB, or network).',
+    x: 575, y: 135, w: 85, h: 70
+  },
+  {
+    id: 'bootloader',
+    name: 'Bootloader',
+    sub: 'Loader',
+    desc: 'Bootloader loads the operating system kernel into memory.',
+    x: 690, y: 135, w: 75, h: 70
+  },
+  {
+    id: 'os',
+    name: 'OS',
+    sub: 'System',
+    desc: 'Operating system initializes drivers, services, and loads the user environment.',
+    x: 795, y: 135, w: 75, h: 70
+  }
+];
+
+// Wire connections between components
+const wireConnections = [
+  { from: 'psu', to: 'motherboard' },
+  { from: 'motherboard', to: 'cpu' },
+  { from: 'cpu', to: 'firmware' },
+  { from: 'firmware', to: 'post' },
+  { from: 'post', to: 'bootdev' },
+  { from: 'bootdev', to: 'bootloader' },
+  { from: 'bootloader', to: 'os' }
+];
+
+let entities = {};
+let wires = {};
+
+function buildStage() {
+  svg.innerHTML = '';
+  entities = {};
+  wires = {};
+  
+  // Draw components
+  bootSteps.forEach((step, i) => {
+    const g = el('g', { id: `comp-${step.id}` });
+    
+    // Component body
+    const body = el('rect', {
+      x: step.x, y: step.y, width: step.w, height: step.h,
+      rx: 10, ry: 10,
+      class: 'component-body'
+    }, g);
+    
+    // Label
+    el('text', {
+      x: step.x + step.w/2, y: step.y + step.h/2 - 8,
+      class: 'component-label'
+    }, g).textContent = step.name;
+    
+    // Sublabel
+    el('text', {
+      x: step.x + step.w/2, y: step.y + step.h/2 + 12,
+      class: 'component-sublabel'
+    }, g).textContent = step.sub;
+    
+    entities[step.id] = { body, g };
+  });
+  
+  // Draw wires
+  wireConnections.forEach((conn, i) => {
+    const from = bootSteps.find(s => s.id === conn.from);
+    const to = bootSteps.find(s => s.id === conn.to);
+    
+    const fromX = from.x + from.w;
+    const fromY = from.y + from.h/2;
+    const toX = to.x;
+    const toY = to.y + to.h/2;
+    
+    // Create straight horizontal line
+    const d = `M${fromX},${fromY} L${toX},${toY}`;
+    
+    const wire = el('path', {
+      d: d,
+      class: 'wire'
+    });
+    
+    wires[`${conn.from}_${conn.to}`] = wire;
+  });
+  
+  // Wire from power button to PSU (in SVG)
+  const powerWire = el('path', {
+    d: `M0,170 L30,170`,
+    class: 'wire'
+  });
+  wires['power_psu'] = powerWire;
+}
+
+function setComponentActive(id, state) {
+  if (!entities[id]) return;
+  const { body } = entities[id];
+  body.setAttribute('class', 'component-body ' + state);
+}
+
+function setWireState(wireId, state) {
+  if (!wires[wireId]) return;
+  wires[wireId].setAttribute('class', 'wire ' + state);
+}
+
+function traceWire(wire, opts = {}) {
+  const { color = 'cyan', duration = 800, keepLit = true } = opts;
+  const d = wire.getAttribute('d');
+  const length = wire.getTotalLength();
+  
+  const tracer = el('path', {
+    d, class: `tracer ${color}`,
+    'stroke-dasharray': length,
+    'stroke-dashoffset': length
+  });
+  
+  return new Promise(resolve => {
+    const start = performance.now();
+    function frame(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t;
+      tracer.setAttribute('stroke-dashoffset', length * (1 - eased));
+      
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        if (keepLit) {
+          tracer.setAttribute('stroke-dasharray', '');
+          tracer.setAttribute('stroke-dashoffset', '0');
+        } else {
+          tracer.style.transition = 'opacity 0.3s';
+          tracer.style.opacity = '0';
+          setTimeout(() => tracer.remove(), 320);
+        }
+        resolve();
+      }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+function narrate(stepLabel, title, desc) {
+  const narrator = document.getElementById('narrator');
+  narrator.innerHTML = `
+    <span class="step-label">${stepLabel}</span>
+    <div class="step-title">${title}</div>
+    <div class="step-desc">${desc}</div>
+  `;
+}
+
+function setProgress(stepNum) {
+  const progress = document.getElementById('progressFill');
+  progress.style.width = ((stepNum / 8) * 100) + '%';
+  
+  const footerStatus = document.querySelector('.footer .status span');
+  if (stepNum === 0) {
+    footerStatus.textContent = 'System Ready';
+  } else if (stepNum === 8) {
+    footerStatus.textContent = 'System Online';
+  } else {
+    footerStatus.textContent = `Booting... Step ${stepNum}/8`;
+  }
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function runBootSequence() {
+  const powerBtn = document.getElementById('powerBtn');
+  if (powerBtn.dataset.running) return;
+  powerBtn.dataset.running = '1';
+  powerBtn.classList.add('active');
+  
+  // Reset
+  buildStage();
+  document.getElementById('progressFill').style.width = '0%';
+  setProgress(0);
+  
+  narrate('Step 1/8', 'Power Supply Unit', bootSteps[0].desc);
+  setProgress(1);
+  
+  // Power button glow
+  await sleep(300);
+  await traceWire(wires['power_psu'], { color: 'cyan', duration: 500 });
+  setWireState('power_psu', 'done');
+  setComponentActive('psu', 'active');
+  await sleep(600);
+  setComponentActive('psu', 'done');
+  
+  // Step 2: Motherboard
+  narrate('Step 2/8', 'Motherboard Stabilization', bootSteps[1].desc);
+  setProgress(2);
+  
+  await traceWire(wires['psu_motherboard'], { color: 'cyan', duration: 500 });
+  setWireState('psu_motherboard', 'done');
+  setComponentActive('motherboard', 'active');
+  await sleep(700);
+  setComponentActive('motherboard', 'done');
+  
+  // Step 3: CPU
+  narrate('Step 3/8', 'CPU Reset & Firmware Execution', bootSteps[2].desc);
+  setProgress(3);
+  
+  await traceWire(wires['motherboard_cpu'], { color: 'cyan', duration: 500 });
+  setWireState('motherboard_cpu', 'done');
+  setComponentActive('cpu', 'active');
+  await sleep(700);
+  setComponentActive('cpu', 'done');
+  
+  // Step 4: Firmware
+  narrate('Step 4/8', 'BIOS/UEFI Firmware', bootSteps[3].desc);
+  setProgress(4);
+  
+  await traceWire(wires['cpu_firmware'], { color: 'cyan', duration: 500 });
+  setWireState('cpu_firmware', 'done');
+  setComponentActive('firmware', 'active');
+  await sleep(800);
+  setComponentActive('firmware', 'done');
+  
+  // Step 5: POST
+  narrate('Step 5/8', 'POST & Hardware Initialization', bootSteps[4].desc);
+  setProgress(5);
+  
+  await traceWire(wires['firmware_post'], { color: 'cyan', duration: 400 });
+  setWireState('firmware_post', 'done');
+  setComponentActive('post', 'active');
+  await sleep(800);
+  setComponentActive('post', 'done');
+  
+  // Step 6: Boot Device
+  narrate('Step 6/8', 'Boot Device Search', bootSteps[5].desc);
+  setProgress(6);
+  
+  await traceWire(wires['post_bootdev'], { color: 'cyan', duration: 500 });
+  setWireState('post_bootdev', 'done');
+  setComponentActive('bootdev', 'active');
+  await sleep(700);
+  setComponentActive('bootdev', 'done');
+  
+  // Step 7: Bootloader
+  narrate('Step 7/8', 'Bootloader Loading', bootSteps[6].desc);
+  setProgress(7);
+  
+  await traceWire(wires['bootdev_bootloader'], { color: 'cyan', duration: 500 });
+  setWireState('bootdev_bootloader', 'done');
+  setComponentActive('bootloader', 'active');
+  await sleep(700);
+  setComponentActive('bootloader', 'done');
+  
+  // Step 8: OS
+  narrate('Step 8/8', 'Operating System & User Environment', bootSteps[7].desc);
+  setProgress(8);
+  
+  await traceWire(wires['bootloader_os'], { color: 'green', duration: 600 });
+  setWireState('bootloader_os', 'done');
+  setComponentActive('os', 'active');
+  await sleep(800);
+  setComponentActive('os', 'done');
+  
+  // Complete
+  narrate('Boot Complete', 'System Online', 'The computer has successfully completed the boot process. The operating system is now running and ready for use.');
+  
+  powerBtn.classList.remove('active');
+  delete powerBtn.dataset.running;
+}
+
+// Initialize
+buildStage();
+
+document.getElementById('powerBtn').addEventListener('click', runBootSequence);
+</script>
+
+</body>
+</html>
