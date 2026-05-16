@@ -716,8 +716,35 @@ function buildStage() {
   entities = {};
   wires = {};
   
+  // Detect mobile and adjust viewBox
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    svg.setAttribute('viewBox', '0 0 1200 350');
+  } else {
+    svg.setAttribute('viewBox', '0 0 900 350');
+  }
+  
+  // Adjust component positions and sizes for mobile
+  const adjustedSteps = bootSteps.map((step, i) => {
+    if (isMobile) {
+      const scale = 1.3;
+      const spacing = 120;
+      const startX = 40;
+      const startY = 135;
+      
+      return {
+        ...step,
+        x: startX + i * spacing,
+        y: startY,
+        w: step.w * scale,
+        h: step.h * scale
+      };
+    }
+    return step;
+  });
+  
   // Draw components
-  bootSteps.forEach((step, i) => {
+  adjustedSteps.forEach((step, i) => {
     const g = el('g', { id: `comp-${step.id}` });
     
     // Component body
@@ -744,8 +771,8 @@ function buildStage() {
   
   // Draw wires
   wireConnections.forEach((conn, i) => {
-    const from = bootSteps.find(s => s.id === conn.from);
-    const to = bootSteps.find(s => s.id === conn.to);
+    const from = adjustedSteps.find(s => s.id === conn.from);
+    const to = adjustedSteps.find(s => s.id === conn.to);
     
     const fromX = from.x + from.w;
     const fromY = from.y + from.h/2;
@@ -764,8 +791,9 @@ function buildStage() {
   });
   
   // Wire from power button to PSU (in SVG)
+  const psu = adjustedSteps.find(s => s.id === 'psu');
   const powerWire = el('path', {
-    d: `M0,170 L30,170`,
+    d: `M0,${psu.y + psu.h/2} L${psu.x},${psu.y + psu.h/2}`,
     class: 'wire'
   });
   wires['power_psu'] = powerWire;
