@@ -271,6 +271,273 @@
       text-decoration: none;
     }
 
+    .lab-button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 14px 28px;
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 15px;
+    }
+
+    .lab-button:hover {
+      background: #ff6b6b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+
+    /* Lab Modal */
+    .lab-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5, 5, 8, 0.95);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .lab-modal.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lab-content {
+      background: var(--panel);
+      border: 1px solid var(--component-border);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .lab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--component-border);
+    }
+
+    .lab-header h2 {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .lab-close {
+      background: var(--component-border);
+      color: var(--text);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .lab-close:hover {
+      background: var(--power);
+      color: white;
+    }
+
+    .lab-instruction {
+      background: var(--component);
+      border: 1px solid var(--component-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .lab-instruction h3 {
+      font-family: var(--mono);
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .lab-instruction p {
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .lab-workspace {
+      background: var(--component);
+      border: 1px solid var(--component-border);
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 200px;
+      margin-bottom: 20px;
+    }
+
+    .bulb-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+    }
+
+    .bulb-svg {
+      width: 150px;
+      height: 150px;
+      transition: all 0.5s ease;
+    }
+
+    .bulb-svg.off .bulb-glass {
+      fill: #333;
+      stroke: #555;
+    }
+
+    .bulb-svg.off .bulb-filament {
+      stroke: #666;
+    }
+
+    .bulb-svg.on .bulb-glass {
+      fill: #ffeb3b;
+      stroke: #ffc107;
+      filter: drop-shadow(0 0 30px rgba(255, 235, 59, 0.8));
+    }
+
+    .bulb-svg.on .bulb-filament {
+      stroke: #ff9800;
+      filter: drop-shadow(0 0 10px rgba(255, 152, 0, 0.8));
+    }
+
+    .lab-bit-palette {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: var(--wire-off);
+      border-radius: 8px;
+      justify-content: center;
+    }
+
+    .lab-bit-palette-item {
+      font-family: var(--mono);
+      font-size: 3rem;
+      font-weight: 700;
+      cursor: grab;
+      transition: all 0.3s ease;
+      padding: 10px 20px;
+    }
+
+    .lab-bit-palette-item.zero {
+      color: #ff0000;
+    }
+
+    .lab-bit-palette-item.one {
+      color: #00ff00;
+    }
+
+    .lab-bit-palette-item:hover {
+      transform: scale(1.2);
+    }
+
+    .lab-bit-palette-item:active {
+      cursor: grabbing;
+    }
+
+    .lab-bit-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      min-height: 150px;
+      border: 2px dashed var(--component-border);
+      border-radius: 8px;
+      padding: 20px;
+      justify-content: center;
+    }
+
+    .lab-bit-container.drag-over {
+      border-color: var(--accent);
+      background: rgba(73, 224, 255, 0.1);
+    }
+
+    .lab-drop-box {
+      width: 100px;
+      height: 100px;
+      border: 3px solid var(--component-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all 0.3s ease;
+    }
+
+    .lab-drop-box.drag-over {
+      border-color: var(--accent);
+      background: rgba(73, 224, 255, 0.1);
+      color: var(--accent);
+    }
+
+    .lab-drop-box .bit-value {
+      font-size: 3rem;
+      font-weight: 700;
+    }
+
+    .lab-drop-box .bit-value.zero {
+      color: #ff0000;
+    }
+
+    .lab-drop-box .bit-value.one {
+      color: #00ff00;
+    }
+
+    .lab-drop-box.has-zero {
+      border-color: #ff0000;
+      background: rgba(255, 0, 0, 0.1);
+    }
+
+    .lab-drop-box.has-one {
+      border-color: #00ff00;
+      background: rgba(0, 255, 0, 0.1);
+    }
+
+    .lab-feedback {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    .lab-feedback.success {
+      background: rgba(73, 224, 255, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+
+    .lab-feedback.info {
+      background: rgba(255, 235, 59, 0.2);
+      border: 1px solid #ffeb3b;
+      color: #ffeb3b;
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 20px 15px;
@@ -287,6 +554,29 @@
 
       .binary-digit .digit {
         font-size: 3rem;
+      }
+
+      .lab-content {
+        padding: 20px;
+      }
+
+      .bulb-svg {
+        width: 120px;
+        height: 120px;
+      }
+
+      .lab-bit-palette-item {
+        font-size: 2.5rem;
+        padding: 8px 15px;
+      }
+
+      .lab-drop-box {
+        width: 80px;
+        height: 80px;
+      }
+
+      .lab-drop-box .bit-value {
+        font-size: 2.5rem;
       }
     }
   </style>
@@ -384,11 +674,154 @@
     <p>This is not just a coincidence or urban legend. It's the actual origin story of the symbol, standardized by international engineering bodies and adopted globally.</p>
     <p>The symbol's brilliance lies in its simplicity: it takes the fundamental concept of binary (the language of all digital electronics) and translates it into a visual mark that anyone can understand, regardless of their native language.</p>
   </div>
+
+  <div class="content-section">
+    <h2>Interactive Lab</h2>
+    <p>Practice the binary power concept by controlling a light bulb with 0 and 1 bits. Drag 0 to turn it off, drag 1 to turn it on!</p>
+    <button class="lab-button" onclick="openLab()">Launch Interactive Lab</button>
+  </div>
 </div>
 
 <div class="footer">
   <p>Digital Guardian v1.0 • <a href="dashboard.html">Return to Dashboard</a></p>
 </div>
+
+<!-- Interactive Lab Modal -->
+<div class="lab-modal" id="labModal">
+  <div class="lab-content">
+    <div class="lab-header">
+      <h2>Power Bulb Lab</h2>
+      <button class="lab-close" onclick="closeLab()">×</button>
+    </div>
+    
+    <div class="lab-instruction">
+      <h3>Control the Bulb with Binary</h3>
+      <p>Drag <span style="color: #ff0000;">0</span> (off) or <span style="color: #00ff00;">1</span> (on) into the container below to control the light bulb. Remember: 0 turns it off, 1 turns it on!</p>
+    </div>
+    
+    <div class="lab-workspace">
+      <div class="bulb-container">
+        <svg class="bulb-svg off" id="bulbSvg" viewBox="0 0 100 100">
+          <circle class="bulb-glass" cx="50" cy="50" r="30" fill="#333" stroke="#555" stroke-width="2"/>
+          <path class="bulb-filament" d="M50 20 L50 50" stroke="#666" stroke-width="3" stroke-linecap="round"/>
+          <rect x="45" y="75" width="10" height="15" fill="#666"/>
+          <rect x="40" y="85" width="20" height="5" fill="#666"/>
+        </svg>
+      </div>
+      
+      <div class="lab-bit-palette">
+        <div class="lab-bit-palette-item zero" draggable="true" data-value="0">0</div>
+        <div class="lab-bit-palette-item one" draggable="true" data-value="1">1</div>
+      </div>
+      
+      <div class="lab-bit-container" id="bitContainer">
+        <div class="lab-drop-box" id="dropBox">
+          <span id="dropValue">?</span>
+        </div>
+        <p style="color: var(--muted); font-size: 0.9rem;">Drop 0 or 1 into the box</p>
+      </div>
+      
+      <div class="lab-feedback" id="labFeedback"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openLab() {
+  document.getElementById('labModal').classList.add('active');
+  resetLab();
+}
+
+function closeLab() {
+  document.getElementById('labModal').classList.remove('active');
+}
+
+function resetLab() {
+  document.getElementById('dropValue').textContent = '?';
+  document.getElementById('dropValue').className = '';
+  document.getElementById('labFeedback').style.display = 'none';
+  setBulbState('off');
+  document.getElementById('dropBox').onclick = null;
+}
+
+function setBulbState(state) {
+  const bulb = document.getElementById('bulbSvg');
+  bulb.classList.remove('on', 'off');
+  bulb.classList.add(state);
+}
+
+// Drag and Drop functionality
+const paletteItems = document.querySelectorAll('.lab-bit-palette-item');
+const dropBox = document.getElementById('dropBox');
+const dropValue = document.getElementById('dropValue');
+
+paletteItems.forEach(item => {
+  item.addEventListener('dragstart', handleDragStart);
+  item.addEventListener('dragend', handleDragEnd);
+});
+
+dropBox.addEventListener('dragover', handleDragOver);
+dropBox.addEventListener('dragleave', handleDragLeave);
+dropBox.addEventListener('drop', handleDrop);
+
+function handleDragStart(e) {
+  e.dataTransfer.setData('text/plain', e.target.dataset.value);
+  e.target.style.opacity = '0.5';
+}
+
+function handleDragEnd(e) {
+  e.target.style.opacity = '1';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  dropBox.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  dropBox.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  dropBox.classList.remove('drag-over');
+  
+  const value = e.dataTransfer.getData('text/plain');
+  
+  // Update drop box with the value
+  dropValue.textContent = value;
+  dropValue.className = 'bit-value ' + (value === '0' ? 'zero' : 'one');
+  
+  // Add border class to drop box
+  dropBox.classList.remove('has-zero', 'has-one');
+  dropBox.classList.add(value === '0' ? 'has-zero' : 'has-one');
+  
+  // Update bulb state
+  setBulbState(value === '1' ? 'on' : 'off');
+  
+  // Show feedback
+  const feedback = document.getElementById('labFeedback');
+  if (value === '1') {
+    feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
+    feedback.className = 'lab-feedback info';
+    feedback.style.display = 'block';
+  } else {
+    feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
+    feedback.className = 'lab-feedback success';
+    feedback.style.display = 'block';
+  }
+  
+  // Add click handler to reset
+  dropBox.onclick = function() {
+    dropValue.textContent = '?';
+    dropValue.className = '';
+    dropBox.classList.remove('has-zero', 'has-one');
+    setBulbState('off');
+    document.getElementById('labFeedback').style.display = 'none';
+    dropBox.onclick = null;
+  };
+}
+</script>
 
 </body>
 </html>
