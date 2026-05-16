@@ -122,6 +122,9 @@
     animation: fadeInUp 0.6s ease backwards;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
   }
   
   .card.disabled {
@@ -224,7 +227,7 @@
   }
   
   .card-action {
-    margin-top: 16px;
+    margin-top: auto;
     padding-top: 16px;
     border-top: 1px solid rgba(73, 224, 255, 0.1);
     display: flex;
@@ -268,6 +271,16 @@
     overflow: hidden;
     animation: fadeInUp 0.8s ease backwards;
     animation-delay: 0.7s;
+  }
+  
+  .holographic-section .card {
+    background: var(--panel);
+    border: 1px solid var(--component-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
   }
   
   .holographic-section::before {
@@ -709,7 +722,7 @@
       </div>
       <div class="card-title">Power Button History</div>
       <div class="card-desc">The story behind the iconic power symbol and its binary connection.</div>
-      <div class="card-stat">
+      <div class="card-action">
         <div class="stat-value">Learn</div>
         <div class="stat-label">History</div>
       </div>
@@ -726,7 +739,7 @@
       </div>
       <div class="card-title">Binary Logic</div>
       <div class="card-desc">Interactive lab: practice creating bit containers and understanding binary fundamentals.</div>
-      <div class="card-stat">
+      <div class="card-action">
         <div class="stat-value">Practice</div>
         <div class="stat-label">Lab</div>
       </div>
