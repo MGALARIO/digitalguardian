@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Button History - Digital Guardian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508;
+      --panel: #0f0f1a;
+      --text: #cfe8ff;
+      --muted: #8a9ab0;
+      --accent: #49e0ff;
+      --purple: #a855f7;
+      --power: #ff3366;
+      --wire-off: #1a1a2e;
+      --component: #12121f;
+      --component-border: #2a3a5a;
+      --mono: 'Fira Code', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(73, 224, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(73, 224, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(73, 224, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .corner {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      z-index: 10;
+      opacity: 0.6;
+    }
+    .corner.tl { top: 20px; left: 20px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.tr { top: 20px; right: 20px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+    .corner.bl { bottom: 20px; left: 20px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.br { bottom: 20px; right: 20px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .header .subtitle {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 30px;
+      color: var(--accent);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      padding: 10px 20px;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .back-link:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .power-icon-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 40px 0;
+      padding: 40px;
+      background: var(--panel);
+      border: 2px solid var(--component-border);
+      border-radius: 16px;
+    }
+
+    .power-icon-display svg {
+      width: 120px;
+      height: 120px;
+    }
+
+    .content-section {
+      background: var(--panel);
+      border: 1px solid var(--component-border);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .content-section h2 {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .content-section p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 15px;
+    }
+
+    .content-section ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+
+    .content-section li {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .binary-explanation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .binary-digit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .binary-digit .digit {
+      font-family: var(--mono);
+      font-size: 4rem;
+      font-weight: 700;
+    }
+
+    .binary-digit .label {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .binary-digit.zero .digit {
+      color: var(--power);
+    }
+
+    .binary-digit.one .digit {
+      color: #00ff00;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+      margin-top: 30px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--purple));
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 30px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -35px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+    }
+
+    .timeline-item .year {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+
+    .timeline-item .title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .power-icon-display svg {
+        width: 80px;
+        height: 80px;
+      }
+
+      .content-section {
+        padding: 20px;
+      }
+
+      .binary-digit .digit {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="container">
+  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  
+  <div class="header">
+    <h1>Power Button History</h1>
+    <div class="subtitle">THE STORY BEHIND THE ICON</div>
+  </div>
+
+  <div class="power-icon-display">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2v10" stroke="#00ff00"/>
+      <path d="M18.4 6.6a9 9 0 1 1-12.8 0" stroke="#ff0000"/>
+    </svg>
+  </div>
+
+  <div class="content-section">
+    <h2>The Binary Connection</h2>
+    <p>Your intuition is correct! The power button symbol is indeed a combination of the numbers <strong>1</strong> and <strong>0</strong>, representing the binary states of "on" and "off".</p>
+    
+    <div class="binary-explanation">
+      <div class="binary-digit zero">
+        <span class="digit">0</span>
+        <span class="label">OFF</span>
+      </div>
+      <div class="binary-digit one">
+        <span class="digit">1</span>
+        <span class="label">ON</span>
+      </div>
+    </div>
+    
+    <p>The circle represents <strong>0</strong> (off state), and the vertical line represents <strong>1</strong> (on state). When combined, they create a universal symbol that transcends language barriers.</p>
+  </div>
+
+  <div class="content-section">
+    <h2>Historical Timeline</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="year">1940s-1950s</div>
+        <div class="title">Physical Switches Era</div>
+        <p>Electronic devices used physical toggle switches with "ON" and "OFF" labels. These labels were language-dependent, creating confusion in international markets.</p>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="year">1960s</div>
+        <div class="title">IEC Standards</div>
+        <p>The International Electrotechnical Commission (IEC) began working on universal symbols for electronic devices to overcome language barriers.</p>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="year">1973</div>
+        <div class="title">IEC 60417-5009 Standard</div>
+        <p>The power symbol was officially standardized as IEC 60417-5009. The symbol was designed to be simple, recognizable, and language-independent.</p>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="year">1980s-1990s</div>
+        <div class="title">Widespread Adoption</div>
+        <p>The power symbol became ubiquitous on computers, electronics, and appliances worldwide, becoming truly universal.</p>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="year">Present Day</div>
+        <div class="title">Modern Usage</div>
+        <p>The symbol is now recognized globally and appears on everything from smartphones to spacecraft, a testament to its brilliant design.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h2>Why This Design Works</h2>
+    <ul>
+      <li><strong>Language Independence:</strong> No words needed, understood across all cultures</li>
+      <li><strong>Binary Logic:</strong> Represents the fundamental on/off states of digital electronics</li>
+      <li><strong>Simplicity:</strong> Easy to draw, recognize, and reproduce</li>
+      <li><strong>Universality:</strong> Works across all types of electronic devices</li>
+      <li><strong>Aesthetic Appeal:</strong> Clean, modern design that has stood the test of time</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h2>The Story Validated</h2>
+    <p>Your belief that the power button represents a combination of 0 and 1 to represent binary is <strong>100% accurate</strong>. This is not just a coincidence or urban legend—it's the actual origin story of the symbol, standardized by international engineering bodies and adopted globally.</p>
+    <p>The symbol's brilliance lies in its simplicity: it takes the fundamental concept of binary (the language of all digital electronics) and translates it into a visual mark that anyone can understand, regardless of their native language.</p>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Digital Guardian v1.0 • <a href="dashboard.html">Return to Dashboard</a></p>
+</div>
+
+</body>
+</html>
