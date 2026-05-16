@@ -223,6 +223,40 @@
     letter-spacing: 1px;
   }
   
+  .card-action {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(73, 224, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .live-indicator {
+    font-size: 0.7rem;
+    color: #00ff00;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  
+  .launch-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .launch-btn:hover {
+    background: var(--accent-dim);
+    transform: scale(1.05);
+  }
+  
   /* Holographic Section */
   .holographic-section {
     background: var(--panel);
@@ -698,13 +732,13 @@
       </div>
     </div>
     
-    <div class="card disabled">
-      <div class="card-icon">🛡️</div>
-      <div class="card-title">Security Status</div>
-      <div class="card-desc">Coming Soon</div>
-      <div class="card-stat">
-        <div class="stat-value">—</div>
-        <div class="stat-label">Coming Soon</div>
+    <div class="card" onclick="window.location.href='variables_java.html'" style="cursor: pointer;">
+      <div class="card-icon">☕</div>
+      <div class="card-title">Variables in Java</div>
+      <div class="card-desc">Learn how to store and manipulate data using variables. Understand Java's typing and basic data types like strings, integers, floats, and booleans.</div>
+      <div class="card-action">
+        <span class="live-indicator">● LIVE</span>
+        <button class="launch-btn">LAUNCH</button>
       </div>
     </div>
     
