@@ -46,8 +46,13 @@
     z-index: 0;
     background:
       radial-gradient(ellipse at 20% 30%, rgba(73, 224, 255, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(255, 68, 68, 0.06) 0%, transparent 50%);
-    pointer-events: none;
+      radial-gradient(ellipse at 80% 70%, rgba(180, 74, 255, 0.08) 0%, transparent 50%);
+    animation: bgPulse 8s ease-in-out infinite;
+  }
+  
+  @keyframes bgPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
   
   .grid-overlay {
@@ -109,8 +114,8 @@
     font-family: var(--mono);
     font-size: clamp(0.85rem, 2vw, 1rem);
     color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-transform: none;
   }
   
   /* Main content area with diagram and controls */
@@ -146,6 +151,10 @@
     box-shadow: 
       0 0 30px rgba(255, 51, 102, 0.3),
       inset 0 0 20px rgba(0, 0, 0, 0.5);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    min-width: 48px;
+    min-height: 48px;
   }
   
   .power-btn::before {
@@ -405,6 +414,143 @@
       font-size: 34px;
     }
   }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 15px;
+    }
+    
+    .header h1 {
+      font-size: 1.8rem;
+    }
+    
+    .header .subtitle {
+      font-size: 0.75rem;
+    }
+    
+    .main-stage {
+      gap: 15px;
+    }
+    
+    .power-btn {
+      width: 70px;
+      height: 70px;
+    }
+    
+    .power-icon {
+      font-size: 30px;
+    }
+    
+    .power-label {
+      font-size: 0.65rem;
+    }
+    
+    .stage-box {
+      min-height: 200px;
+      padding: 12px;
+    }
+    
+    .narrator {
+      padding: 12px 16px;
+      min-height: 50px;
+    }
+    
+    .narrator .step-label {
+      font-size: 0.65rem;
+    }
+    
+    .narrator .step-title {
+      font-size: 0.85rem;
+    }
+    
+    .narrator .step-desc {
+      font-size: 0.8rem;
+    }
+    
+    .progress-bar {
+      height: 2px;
+    }
+    
+    .footer {
+      padding: 10px 16px;
+      font-size: 0.65rem;
+    }
+    
+    .corner {
+      width: 30px;
+      height: 30px;
+    }
+    
+    .corner.tl { top: 15px; left: 15px; }
+    .corner.tr { top: 15px; right: 15px; }
+    .corner.bl { bottom: 15px; left: 15px; }
+    .corner.br { bottom: 15px; right: 15px; }
+  }
+  
+  @media (max-width: 480px) {
+    .header h1 {
+      font-size: 1.5rem;
+    }
+    
+    .header .subtitle {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+    }
+    
+    .main-stage {
+      gap: 12px;
+    }
+    
+    .power-btn {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .power-icon {
+      font-size: 26px;
+    }
+    
+    .power-label {
+      font-size: 0.6rem;
+      letter-spacing: 1.5px;
+    }
+    
+    .stage-box {
+      min-height: 180px;
+      padding: 10px;
+    }
+    
+    .narrator {
+      padding: 10px 14px;
+    }
+    
+    .narrator .step-label {
+      font-size: 0.6rem;
+    }
+    
+    .narrator .step-title {
+      font-size: 0.8rem;
+    }
+    
+    .narrator .step-desc {
+      font-size: 0.75rem;
+    }
+    
+    .footer {
+      padding: 8px 12px;
+      font-size: 0.6rem;
+    }
+    
+    .corner {
+      width: 25px;
+      height: 25px;
+    }
+    
+    .corner.tl { top: 10px; left: 10px; }
+    .corner.tr { top: 10px; right: 10px; }
+    .corner.bl { bottom: 10px; left: 10px; }
+    .corner.br { bottom: 10px; right: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -419,7 +565,7 @@
 <div class="container">
   <div class="header">
     <h1>Digital Guardian</h1>
-    <div class="subtitle">Computer Boot Visualization</div>
+    <div class="subtitle">Press power on to start</div>
   </div>
   
   <div class="main-stage">
@@ -770,6 +916,213 @@ async function runBootSequence() {
   
   powerBtn.classList.remove('active');
   delete powerBtn.dataset.running;
+  
+  // Transform stage into computer display
+  await sleep(500);
+  await transformToDisplay();
+}
+
+async function transformToDisplay() {
+  // Clear the stage
+  svg.innerHTML = '';
+  
+  // Create monitor frame
+  const frame = el('rect', {
+    x: 10, y: 10, width: 880, height: 330,
+    rx: 15, ry: 15,
+    fill: '#1a1a2e',
+    stroke: '#2a3a5a',
+    'stroke-width': 4
+  });
+  
+  // Create screen area
+  const screen = el('rect', {
+    x: 25, y: 25, width: 850, height: 300,
+    rx: 8, ry: 8,
+    fill: '#0a0a12',
+    stroke: '#49e0ff',
+    'stroke-width': 2,
+    'stroke-opacity': 0.3
+  });
+  
+  // Add loading text
+  const loadingGroup = el('g', { id: 'loading-group' });
+  
+  // Loading spinner
+  const spinner = el('circle', {
+    cx: 450, cy: 150, r: 30,
+    fill: 'none',
+    stroke: '#49e0ff',
+    'stroke-width': 3,
+    'stroke-dasharray': '188.5',
+    'stroke-dashoffset': '0'
+  }, loadingGroup);
+  
+  // Animate spinner
+  spinner.style.animation = 'spin 1.5s linear infinite';
+  
+  // Add spinner animation to CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes spin {
+      from { transform: rotate(0deg); transform-origin: 450px 150px; }
+      to { transform: rotate(360deg); transform-origin: 450px 150px; }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Loading text
+  const loadingText = el('text', {
+    x: 450, y: 200,
+    fill: '#49e0ff',
+    'font-family': 'Fira Code, monospace',
+    'font-size': '14',
+    'text-anchor': 'middle'
+  }, loadingGroup);
+  loadingText.textContent = 'Loading Desktop Environment...';
+  
+  // Wait for loading animation
+  await sleep(2000);
+  
+  // Clear loading and show desktop
+  loadingGroup.remove();
+  
+  // Create desktop background
+  const desktop = el('rect', {
+    x: 25, y: 25, width: 850, height: 300,
+    rx: 8, ry: 8,
+    fill: 'url(#desktopGradient)'
+  });
+  
+  // Add gradient for desktop
+  const defs = el('defs');
+  const gradient = el('linearGradient', {
+    id: 'desktopGradient',
+    x1: '0%', y1: '0%',
+    x2: '100%', y2: '100%'
+  }, defs);
+  el('stop', { offset: '0%', 'stop-color': '#0a0a18' }, gradient);
+  el('stop', { offset: '100%', 'stop-color': '#1a1a30' }, gradient);
+  
+  // Add taskbar
+  const taskbar = el('rect', {
+    x: 25, y: 295, width: 850, height: 30,
+    fill: '#1a1a2e',
+    stroke: '#2a3a5a',
+    'stroke-width': 1
+  });
+  
+  // Add start button
+  const startBtn = el('rect', {
+    x: 30, y: 298, width: 80, height: 24,
+    rx: 4, ry: 4,
+    fill: '#2a3a5a',
+    stroke: '#49e0ff',
+    'stroke-width': 1,
+    style: 'cursor: pointer; pointer-events: all;'
+  });
+  
+  const startText = el('text', {
+    x: 70, y: 314,
+    fill: '#cfe8ff',
+    'font-family': 'Fira Code, monospace',
+    'font-size': '10',
+    'text-anchor': 'middle',
+    cursor: 'pointer'
+  });
+  startText.textContent = 'START';
+  startText.style.cursor = 'pointer';
+  
+  // Add click handler to open dashboard
+  startBtn.addEventListener('click', () => {
+    window.open('dashboard.html', '_blank');
+  });
+  startText.addEventListener('click', () => {
+    window.open('dashboard.html', '_blank');
+  });
+  
+  // Add clock
+  const clockText = el('text', {
+    x: 860, y: 314,
+    fill: '#cfe8ff',
+    'font-family': 'Fira Code, monospace',
+    'font-size': '10',
+    'text-anchor': 'end'
+  });
+  clockText.textContent = new Date().toLocaleTimeString();
+  
+  // Update clock every second
+  setInterval(() => {
+    clockText.textContent = new Date().toLocaleTimeString();
+  }, 1000);
+  
+  // Add window
+  const windowGroup = el('g', { id: 'window-group' });
+  
+  const windowRect = el('rect', {
+    x: 100, y: 50, width: 300, height: 200,
+    rx: 8, ry: 8,
+    fill: '#12121f',
+    stroke: '#49e0ff',
+    'stroke-width': 2
+  }, windowGroup);
+  
+  const titleBar = el('rect', {
+    x: 100, y: 50, width: 300, height: 25,
+    rx: 8, ry: 8,
+    fill: '#1a1a2e'
+  }, windowGroup);
+  
+  // Fix title bar corners
+  const titleBarFix = el('rect', {
+    x: 100, y: 65, width: 300, height: 10,
+    fill: '#1a1a2e'
+  }, windowGroup);
+  
+  const windowTitle = el('text', {
+    x: 115, y: 66,
+    fill: '#cfe8ff',
+    'font-family': 'Fira Code, monospace',
+    'font-size': '10'
+  }, windowGroup);
+  windowTitle.textContent = 'Terminal - Digital Guardian';
+  
+  // Terminal content
+  const terminalLines = [
+    '> Boot sequence complete',
+    '> System ready',
+    '> Welcome to Digital Guardian',
+    '> _'
+  ];
+  
+  terminalLines.forEach((line, i) => {
+    const text = el('text', {
+      x: 110, y: 90 + i * 20,
+      fill: '#49e0ff',
+      'font-family': 'Fira Code, monospace',
+      'font-size': '11'
+    }, windowGroup);
+    text.textContent = line;
+  });
+  
+  // Blinking cursor
+  const cursor = el('text', {
+    x: 110, y: 90 + (terminalLines.length - 1) * 20,
+    fill: '#49e0ff',
+    'font-family': 'Fira Code, monospace',
+    'font-size': '11'
+  }, windowGroup);
+  cursor.textContent = '_';
+  
+  // Blink animation
+  let cursorVisible = true;
+  setInterval(() => {
+    cursor.style.opacity = cursorVisible ? '1' : '0';
+    cursorVisible = !cursorVisible;
+  }, 500);
+  
+  // Update narrator
+  narrate('Desktop Loaded', 'System Ready', 'Desktop environment loaded successfully. The system is now ready for use.');
 }
 
 // Initialize
