@@ -1038,10 +1038,12 @@ async function transformToDisplay() {
   startText.style.cursor = 'pointer';
   
   // Add click handler to open dashboard
-  startBtn.addEventListener('click', () => {
+  startBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     window.location.href = 'dashboard.html';
   });
-  startText.addEventListener('click', () => {
+  startText.addEventListener('click', (e) => {
+    e.preventDefault();
     window.location.href = 'dashboard.html';
   });
   
