@@ -1063,8 +1063,8 @@ async function transformToDisplay() {
   // Add start button
   const startBtnX = isMobile ? 30 : 30;
   const startBtnY = isMobile ? 848 : 298;
-  const startBtnWidth = isMobile ? 100 : 80;
-  const startBtnHeight = isMobile ? 28 : 24;
+  const startBtnWidth = isMobile ? 140 : 80;
+  const startBtnHeight = isMobile ? 40 : 24;
   const startBtn = el('rect', {
     x: startBtnX, y: startBtnY, width: startBtnWidth, height: startBtnHeight,
     rx: 4, ry: 4,
@@ -1074,13 +1074,13 @@ async function transformToDisplay() {
     style: 'cursor: pointer; pointer-events: all;'
   });
   
-  const startTextX = isMobile ? 80 : 70;
-  const startTextY = isMobile ? 866 : 314;
+  const startTextX = isMobile ? 100 : 70;
+  const startTextY = isMobile ? 874 : 314;
   const startText = el('text', {
     x: startTextX, y: startTextY,
     fill: '#cfe8ff',
     'font-family': 'Fira Code, monospace',
-    'font-size': '10',
+    'font-size': isMobile ? '14' : '10',
     'text-anchor': 'middle',
     cursor: 'pointer'
   });
