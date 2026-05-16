@@ -802,9 +802,9 @@ function handleTouchEnd(e) {
   
   const touch = e.changedTouches[0];
   const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const container = dropTarget?.closest('#dropBox');
+  const container = dropTarget?.closest('#dropBox') || dropTarget?.closest('.lab-drop-box');
   
-  if (container) {
+  if (container || dropTarget?.id === 'dropBox') {
     const value = draggedItem.dataset.value;
     
     // Update drop box with the value

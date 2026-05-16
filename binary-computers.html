@@ -902,9 +902,9 @@ function handleTouchEnd(e) {
   
   const touch = e.changedTouches[0];
   const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-  const container = dropTarget?.closest('#bitContainer');
+  const container = dropTarget?.closest('#bitContainer') || dropTarget?.closest('.lab-bit-container');
   
-  if (container) {
+  if (container || dropTarget?.id === 'bitContainer') {
     // Remove the "Drop bits here" text if it exists
     const dropText = bitContainer.querySelector('p');
     if (dropText) {
