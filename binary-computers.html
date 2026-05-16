@@ -548,6 +548,13 @@
       transform: translateY(-2px);
     }
 
+    @media (max-width: 768px) {
+      .lab-next-btn {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+      }
+    }
+
     .lab-feedback {
       margin-top: 15px;
       padding: 15px;
@@ -1015,7 +1022,16 @@ function checkAnswer() {
     
     // Show next button if not on last exercise
     if (currentExercise < exercises.length) {
-      document.getElementById('nextBtn').style.display = 'inline-block';
+      setTimeout(() => {
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.style.display = 'inline-block';
+        // Change text to just "Next" for mobile
+        if (window.innerWidth <= 768) {
+          nextBtn.textContent = 'Next';
+        } else {
+          nextBtn.textContent = 'Next Exercise →';
+        }
+      }, 500);
     }
   } else {
     feedback.textContent = `✗ Please create exactly ${exercise.bits} bit containers. You currently have ${placedBits.length} container(s).`;
