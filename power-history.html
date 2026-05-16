@@ -474,8 +474,8 @@
     }
 
     .lab-drop-box {
-      width: 100px;
-      height: 100px;
+      width: 120px;
+      height: 120px;
       border: 3px solid var(--component-border);
       border-radius: 12px;
       display: flex;
@@ -486,12 +486,14 @@
       font-weight: 700;
       color: var(--muted);
       transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     .lab-drop-box.drag-over {
       border-color: var(--accent);
-      background: rgba(73, 224, 255, 0.1);
+      background: rgba(73, 224, 255, 0.2);
       color: var(--accent);
+      transform: scale(1.1);
     }
 
     .lab-drop-box .bit-value {
@@ -769,12 +771,74 @@ dropBox.addEventListener('drop', handleDrop);
 let draggedItem = null;
 let touchStartX = 0;
 let touchStartY = 0;
+let selectedValue = null;
 
 paletteItems.forEach(item => {
   item.addEventListener('touchstart', handleTouchStart, { passive: false });
   item.addEventListener('touchmove', handleTouchMove, { passive: false });
   item.addEventListener('touchend', handleTouchEnd);
+  // Add click handler as fallback for mobile
+  item.addEventListener('click', handleItemClick);
 });
+
+// Add click handler to drop box for mobile tap-to-place
+dropBox.addEventListener('click', handleDropBoxClick);
+
+function handleItemClick(e) {
+  selectedValue = e.target.dataset.value;
+  e.target.style.opacity = '0.5';
+  
+  // Reset other items
+  paletteItems.forEach(item => {
+    if (item !== e.target) {
+      item.style.opacity = '1';
+    }
+  });
+}
+
+function handleDropBoxClick() {
+  if (selectedValue) {
+    // Update drop box with the value
+    dropValue.textContent = selectedValue;
+    dropValue.className = 'bit-value ' + (selectedValue === '0' ? 'zero' : 'one');
+    
+    // Add border class to drop box
+    dropBox.classList.remove('has-zero', 'has-one');
+    dropBox.classList.add(selectedValue === '0' ? 'has-zero' : 'has-one');
+    
+    // Update bulb state
+    setBulbState(selectedValue === '1' ? 'on' : 'off');
+    
+    // Show feedback
+    const feedback = document.getElementById('labFeedback');
+    if (selectedValue === '1') {
+      feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
+      feedback.className = 'lab-feedback info';
+      feedback.style.display = 'block';
+    } else {
+      feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
+      feedback.className = 'lab-feedback success';
+      feedback.style.display = 'block';
+    }
+    
+    // Reset selection
+    paletteItems.forEach(item => {
+      item.style.opacity = '1';
+    });
+    selectedValue = null;
+    
+    // Add click handler to reset
+    dropBox.onclick = function() {
+      dropValue.textContent = '?';
+      dropValue.className = '';
+      dropBox.classList.remove('has-zero', 'has-one');
+      setBulbState('off');
+      document.getElementById('labFeedback').style.display = 'none';
+      // Re-add click handler for tap-to-place
+      dropBox.onclick = handleDropBoxClick;
+    };
+  }
+}
 
 function handleTouchStart(e) {
   e.preventDefault();
@@ -794,11 +858,23 @@ function handleTouchMove(e) {
   const moveY = touch.clientY - touchStartY;
   
   draggedItem.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.1)`;
+  
+  // Check if hovering over drop box during drag
+  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+  const container = dropTarget?.closest('#dropBox') || dropTarget?.closest('.lab-drop-box');
+  
+  if (container || dropTarget?.id === 'dropBox') {
+    dropBox.classList.add('drag-over');
+  } else {
+    dropBox.classList.remove('drag-over');
+  }
 }
 
 function handleTouchEnd(e) {
   e.preventDefault();
   if (!draggedItem) return;
+  
+  dropBox.classList.remove('drag-over');
   
   const touch = e.changedTouches[0];
   const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
