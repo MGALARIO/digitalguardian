@@ -905,8 +905,6 @@ function handleTouchEnd(e) {
   const container = dropTarget?.closest('#bitContainer');
   
   if (container) {
-    const value = draggedItem.dataset.value;
-    
     // Remove the "Drop bits here" text if it exists
     const dropText = bitContainer.querySelector('p');
     if (dropText) {
