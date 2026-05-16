@@ -855,6 +855,7 @@ function nextExercise() {
 const paletteItems = document.querySelectorAll('.lab-bit-palette-item');
 const bitContainer = document.getElementById('bitContainer');
 
+// Mouse events
 paletteItems.forEach(item => {
   item.addEventListener('dragstart', handleDragStart);
   item.addEventListener('dragend', handleDragEnd);
@@ -863,6 +864,76 @@ paletteItems.forEach(item => {
 bitContainer.addEventListener('dragover', handleDragOver);
 bitContainer.addEventListener('dragleave', handleDragLeave);
 bitContainer.addEventListener('drop', handleDrop);
+
+// Touch events for mobile
+let draggedItem = null;
+let touchStartX = 0;
+let touchStartY = 0;
+
+paletteItems.forEach(item => {
+  item.addEventListener('touchstart', handleTouchStart, { passive: false });
+  item.addEventListener('touchmove', handleTouchMove, { passive: false });
+  item.addEventListener('touchend', handleTouchEnd);
+});
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  draggedItem = e.target;
+  draggedItem.style.opacity = '0.5';
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!draggedItem) return;
+  
+  const touch = e.touches[0];
+  const moveX = touch.clientX - touchStartX;
+  const moveY = touch.clientY - touchStartY;
+  
+  draggedItem.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.1)`;
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  if (!draggedItem) return;
+  
+  const touch = e.changedTouches[0];
+  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+  const container = dropTarget?.closest('#bitContainer');
+  
+  if (container) {
+    const value = draggedItem.dataset.value;
+    
+    // Remove the "Drop bits here" text if it exists
+    const dropText = bitContainer.querySelector('p');
+    if (dropText) {
+      dropText.remove();
+    }
+    
+    // Create new bit container element
+    const newBit = document.createElement('div');
+    newBit.className = 'lab-bit-placed';
+    newBit.onclick = function() {
+      this.remove();
+      placedBits = placedBits.filter(b => b !== 'bit');
+      
+      // Add back the drop text if empty
+      if (bitContainer.children.length === 0) {
+        bitContainer.innerHTML = '<p style="color: var(--muted); font-size: 0.9rem; width: 100%; text-align: center;">Drop bit containers here</p>';
+      }
+    };
+    
+    bitContainer.appendChild(newBit);
+    placedBits.push('bit');
+  }
+  
+  draggedItem.style.opacity = '1';
+  draggedItem.style.transform = '';
+  draggedItem = null;
+}
 
 function handleDragStart(e) {
   e.dataTransfer.setData('text/plain', 'bit');

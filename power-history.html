@@ -755,6 +755,7 @@ const paletteItems = document.querySelectorAll('.lab-bit-palette-item');
 const dropBox = document.getElementById('dropBox');
 const dropValue = document.getElementById('dropValue');
 
+// Mouse events
 paletteItems.forEach(item => {
   item.addEventListener('dragstart', handleDragStart);
   item.addEventListener('dragend', handleDragEnd);
@@ -763,6 +764,87 @@ paletteItems.forEach(item => {
 dropBox.addEventListener('dragover', handleDragOver);
 dropBox.addEventListener('dragleave', handleDragLeave);
 dropBox.addEventListener('drop', handleDrop);
+
+// Touch events for mobile
+let draggedItem = null;
+let touchStartX = 0;
+let touchStartY = 0;
+
+paletteItems.forEach(item => {
+  item.addEventListener('touchstart', handleTouchStart, { passive: false });
+  item.addEventListener('touchmove', handleTouchMove, { passive: false });
+  item.addEventListener('touchend', handleTouchEnd);
+});
+
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  draggedItem = e.target;
+  draggedItem.style.opacity = '0.5';
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!draggedItem) return;
+  
+  const touch = e.touches[0];
+  const moveX = touch.clientX - touchStartX;
+  const moveY = touch.clientY - touchStartY;
+  
+  draggedItem.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.1)`;
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  if (!draggedItem) return;
+  
+  const touch = e.changedTouches[0];
+  const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+  const container = dropTarget?.closest('#dropBox');
+  
+  if (container) {
+    const value = draggedItem.dataset.value;
+    
+    // Update drop box with the value
+    dropValue.textContent = value;
+    dropValue.className = 'bit-value ' + (value === '0' ? 'zero' : 'one');
+    
+    // Add border class to drop box
+    dropBox.classList.remove('has-zero', 'has-one');
+    dropBox.classList.add(value === '0' ? 'has-zero' : 'has-one');
+    
+    // Update bulb state
+    setBulbState(value === '1' ? 'on' : 'off');
+    
+    // Show feedback
+    const feedback = document.getElementById('labFeedback');
+    if (value === '1') {
+      feedback.textContent = '💡 Bulb is ON! (1 = electricity flowing)';
+      feedback.className = 'lab-feedback info';
+      feedback.style.display = 'block';
+    } else {
+      feedback.textContent = '💤 Bulb is OFF (0 = no electricity)';
+      feedback.className = 'lab-feedback success';
+      feedback.style.display = 'block';
+    }
+    
+    // Add click handler to reset
+    dropBox.onclick = function() {
+      dropValue.textContent = '?';
+      dropValue.className = '';
+      dropBox.classList.remove('has-zero', 'has-one');
+      setBulbState('off');
+      document.getElementById('labFeedback').style.display = 'none';
+      dropBox.onclick = null;
+    };
+  }
+  
+  draggedItem.style.opacity = '1';
+  draggedItem.style.transform = '';
+  draggedItem = null;
+}
 
 function handleDragStart(e) {
   e.dataTransfer.setData('text/plain', e.target.dataset.value);
