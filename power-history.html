@@ -412,13 +412,19 @@
 
     .bulb-svg.on .bulb-glass {
       fill: #ffeb3b;
-      stroke: #ffc107;
-      filter: drop-shadow(0 0 30px rgba(255, 235, 59, 0.8));
+      stroke: #ff9800;
+      filter: drop-shadow(0 0 20px rgba(255, 235, 59, 0.6));
     }
 
-    .bulb-svg.on .bulb-filament {
-      stroke: #ff9800;
-      filter: drop-shadow(0 0 10px rgba(255, 152, 0, 0.8));
+    .bulb-svg.on .bulb-filament,
+    .bulb-svg.on .bulb-filament-center {
+      stroke: #fff;
+      fill: #fff;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+    }
+
+    .bulb-svg.on ellipse {
+      fill: rgba(255, 255, 255, 0.2);
     }
 
     .lab-bit-palette {
@@ -703,11 +709,24 @@
     
     <div class="lab-workspace">
       <div class="bulb-container">
-        <svg class="bulb-svg off" id="bulbSvg" viewBox="0 0 100 100">
-          <circle class="bulb-glass" cx="50" cy="50" r="30" fill="#333" stroke="#555" stroke-width="2"/>
-          <path class="bulb-filament" d="M50 20 L50 50" stroke="#666" stroke-width="3" stroke-linecap="round"/>
-          <rect x="45" y="75" width="10" height="15" fill="#666"/>
-          <rect x="40" y="85" width="20" height="5" fill="#666"/>
+        <svg class="bulb-svg off" id="bulbSvg" viewBox="0 0 100 140">
+          <!-- Screw base -->
+          <rect x="42" y="110" width="16" height="20" fill="#555" stroke="#333" stroke-width="1"/>
+          <rect x="44" y="115" width="12" height="15" fill="#444" stroke="#333" stroke-width="0.5"/>
+          <rect x="46" y="120" width="8" height="10" fill="#333"/>
+          
+          <!-- Base connector -->
+          <rect x="43" y="95" width="14" height="15" fill="#666" stroke="#555" stroke-width="1"/>
+          
+          <!-- Glass bulb -->
+          <ellipse class="bulb-glass" cx="50" cy="55" rx="35" ry="40" fill="#2a2a2a" stroke="#444" stroke-width="2"/>
+          
+          <!-- Filament -->
+          <path class="bulb-filament" d="M40 85 L40 55 L50 35 L60 55 L60 85" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="bulb-filament-center" cx="50" cy="35" r="3" fill="#555"/>
+          
+          <!-- Glass shine -->
+          <ellipse cx="35" cy="40" rx="8" ry="12" fill="rgba(255,255,255,0.05)" opacity="0.5"/>
         </svg>
       </div>
       
