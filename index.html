@@ -1125,7 +1125,7 @@ async function transformToDisplay() {
     x: windowRectX, y: windowRectY, width: windowRectWidth, height: windowRectHeight,
     rx: 8, ry: 8,
     fill: '#12121f',
-    stroke: '#49e0ff',
+    stroke: '#39ff14',
     'stroke-width': 2
   }, windowGroup);
   
@@ -1164,7 +1164,7 @@ async function transformToDisplay() {
   terminalLines.forEach((line, i) => {
     const text = el('text', {
       x: textX, y: textYStart + i * lineHeight,
-      fill: '#49e0ff',
+      fill: '#39ff14',
       'font-family': 'Fira Code, monospace',
       'font-size': isMobile ? '14' : '11'
     }, windowGroup);
@@ -1174,7 +1174,7 @@ async function transformToDisplay() {
   // Blinking cursor
   const cursor = el('text', {
     x: textX, y: textYStart + (terminalLines.length - 1) * lineHeight,
-    fill: '#49e0ff',
+    fill: '#39ff14',
     'font-family': 'Fira Code, monospace',
     'font-size': isMobile ? '14' : '11'
   }, windowGroup);
