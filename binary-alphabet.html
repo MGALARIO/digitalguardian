@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binary Alphabet - Computer Fundamentals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508;
+      --panel: #0f0f1a;
+      --text: #cfe8ff;
+      --muted: #8a9ab0;
+      --accent: #49e0ff;
+      --purple: #a855f7;
+      --green: #00ff88;
+      --red: #ff3366;
+      --wire-off: #1e2e3e;
+      --component: #0c0c1a;
+      --component-border: #2a3a5a;
+      --mono: 'Fira Code', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(73, 224, 255, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.07) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(73, 224, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(73, 224, 255, 0.025) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .corner { position: fixed; width: 36px; height: 36px; z-index: 10; opacity: 0.5; }
+    .corner.tl { top: 16px; left: 16px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.tr { top: 16px; right: 16px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+    .corner.bl { bottom: 16px; left: 16px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner.br { bottom: 16px; right: 16px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 28px;
+      color: var(--accent);
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      padding: 9px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      transition: all 0.25s ease;
+    }
+    .back-link:hover { background: var(--accent); color: var(--bg); }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .page-header h1 {
+      font-family: var(--mono);
+      font-size: clamp(1.6rem, 5vw, 2.6rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .page-header .sub {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+    }
+
+    .intro-box {
+      background: var(--panel);
+      border: 1px solid var(--component-border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+      font-size: 0.93rem;
+      line-height: 1.75;
+      color: var(--text);
+    }
+    .intro-box strong { color: var(--accent); }
+
+    /* ── INTERACTIVE WRAPPER ── */
+    .lab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* DISPLAY SCREEN */
+    .display-screen {
+      width: 100%;
+      max-width: 400px;
+      background: var(--component);
+      border: 2px solid var(--accent);
+      border-radius: 14px;
+      padding: 14px 28px 18px;
+      text-align: center;
+      box-shadow: 0 0 24px rgba(73, 224, 255, 0.18), inset 0 0 30px rgba(73, 224, 255, 0.03);
+    }
+    .display-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    .display-char {
+      font-family: var(--mono);
+      font-size: 5.5rem;
+      font-weight: 700;
+      color: #1e2e3e;
+      min-height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+      line-height: 1;
+    }
+    .display-char.lit {
+      color: var(--accent);
+      text-shadow: 0 0 28px var(--accent), 0 0 56px rgba(73, 224, 255, 0.45);
+    }
+    .display-info {
+      font-family: var(--mono);
+      font-size: 0.73rem;
+      color: var(--muted);
+      min-height: 18px;
+      margin-top: 6px;
+    }
+
+    /* Vertical wire: display ↔ bit row */
+    .vwire {
+      width: 3px;
+      height: 34px;
+      background: var(--wire-off);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .vwire.lit { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .vwire .spark {
+      position: absolute;
+      left: 0; width: 100%; height: 38%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      border-radius: 2px;
+    }
+    .vwire .spark.go-up   { animation: goUp   0.55s ease-in forwards; }
+    .vwire .spark.go-down { animation: goDown 0.55s ease-in forwards; }
+    @keyframes goUp   { from { top: 100%; } to { top: -38%; } }
+    @keyframes goDown { from { top: -38%; } to { top: 100%; } }
+
+    /* BIT BOXES */
+    .bits-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .bit-labels {
+      display: grid;
+      grid-template-columns: repeat(7, var(--bw, 50px));
+      gap: var(--bg-gap, 8px);
+    }
+    .blbl {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+    }
+    .bits-row {
+      display: grid;
+      grid-template-columns: repeat(7, var(--bw, 50px));
+      gap: var(--bg-gap, 8px);
+    }
+    .bit-box {
+      height: 50px;
+      border: 2px solid var(--component-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--component);
+      transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .bit-box.is-zero {
+      border-color: var(--red); color: var(--red);
+      background: rgba(255,51,102,0.1);
+      box-shadow: 0 0 10px rgba(255,51,102,0.3);
+    }
+    .bit-box.is-one {
+      border-color: var(--green); color: var(--green);
+      background: rgba(0,255,136,0.1);
+      box-shadow: 0 0 10px rgba(0,255,136,0.3);
+    }
+    .bit-box.pop { animation: bitpop 0.25s ease; }
+    @keyframes bitpop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.22)} }
+
+    /* 7 individual wire strands */
+    .wires-row {
+      display: grid;
+      grid-template-columns: repeat(7, var(--bw, 50px));
+      gap: var(--bg-gap, 8px);
+    }
+    .strand-wrap { display: flex; justify-content: center; }
+    .strand {
+      width: 3px;
+      height: 52px;
+      background: var(--wire-off);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .strand.lit { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .strand .spark {
+      position: absolute;
+      left: 0; width: 100%; height: 38%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      border-radius: 2px;
+      top: 100%;
+    }
+    .strand .spark.go { animation: goUp 0.42s ease-in forwards; }
+
+    /* STATUS */
+    .status-line {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 8px 12px;
+      min-height: 36px;
+      transition: color 0.2s;
+    }
+    .status-line.on { color: var(--accent); }
+
+    /* KEYBOARD */
+    .keyboard-wrap {
+      width: 100%;
+      max-width: 570px;
+      background: var(--panel);
+      border: 1px solid var(--component-border);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+    }
+    .kb-header {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .kb-row {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      margin-bottom: 5px;
+    }
+    .kb-key {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 4px;
+      background: var(--component);
+      border: 1px solid var(--component-border);
+      border-bottom: 3px solid #1a2a4a;
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .kb-key:hover {
+      background: rgba(73,224,255,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .kb-key.pressed {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      border-bottom-width: 1px;
+      box-shadow: 0 0 14px var(--accent);
+      transform: translateY(2px) scale(0.94);
+    }
+    .caps-btn {
+      display: block;
+      margin: 8px auto 0;
+      padding: 5px 14px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      background: var(--component);
+      border: 1px solid var(--component-border);
+      border-radius: 5px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .caps-btn.caps-on { border-color: var(--accent); color: var(--accent); }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      position: relative;
+      z-index: 2;
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    /* TABS */
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+    .tab-btn { font-family: var(--mono); font-size: 0.78rem; padding: 10px 24px; border-radius: 8px; cursor: pointer; border: 1px solid var(--component-border); background: var(--component); color: var(--muted); transition: all 0.2s; letter-spacing: 1px; }
+    .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tab-btn.active { background: rgba(73,224,255,.12); border-color: var(--accent); color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+    /* BULBS */
+    .bulb-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bulb-row { display: grid; grid-template-columns: repeat(7, var(--bw, 56px)); gap: var(--bg-gap, 8px); }
+    .bulb-box { display: flex; justify-content: center; }
+    .bulb-img { width: var(--bw, 56px); height: auto; max-height: 74px; object-fit: contain; border-radius: 8px; filter: brightness(0.22) grayscale(0.7); transition: filter 0.35s ease, transform 0.2s ease; }
+    .bulb-img.on { filter: brightness(1.15) drop-shadow(0 0 8px #ffe566) drop-shadow(0 0 20px rgba(255,210,50,.55)); }
+    .bulb-img.pop { animation: bulbpop 0.3s ease; }
+    @keyframes bulbpop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.22)} }
+
+    /* RESPONSIVE */
+    @media (max-width: 500px) {
+      .bits-wrap, .bulb-wrap, .tab-panel.active { --bw: 34px; --bg-gap: 5px; }
+      .bit-box { height: 38px; font-size: 1.05rem; }
+      .blbl { font-size: 0.52rem; }
+      .kb-key { min-width: 28px; height: 30px; font-size: 0.7rem; gap: 3px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="container">
+
+  <a href="topics.html" class="back-link">← Back to Topics</a>
+
+  <div class="page-header">
+    <h1>Binary Alphabet</h1>
+    <div class="sub">EVERY LETTER IS 7 BITS</div>
+  </div>
+
+  <div class="intro-box">
+    Every letter you type — whether uppercase <strong>A</strong> or lowercase <strong>z</strong> — is stored by a computer as a <strong>7-bit binary code</strong>. That means just seven 0s and 1s can represent all 128 characters including all English letters (big and small), numbers, and symbols. This system is called <strong>ASCII</strong> (American Standard Code for Information Interchange). Press any letter on the keyboard below to watch the signal travel through the wires!
+  </div>
+
+  <div style="text-align:center;margin-bottom:24px">
+    <a href="quiz-binary.html" style="display:inline-flex;align-items:center;gap:10px;font-family:'Fira Code',monospace;font-size:.9rem;padding:12px 28px;background:rgba(168,85,247,.15);border:1px solid #a855f7;border-radius:10px;color:#a855f7;text-decoration:none;transition:all .25s" onmouseover="this.style.background='#a855f7';this.style.color='#fff'" onmouseout="this.style.background='rgba(168,85,247,.15)';this.style.color='#a855f7'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      TEST YOURSELF
+    </a>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabBtnBits"  onclick="switchTab(0)">&#9632; BINARY BITS</button>
+    <button class="tab-btn"        id="tabBtnBulbs" onclick="switchTab(1)">&#128161; LIGHT BULBS</button>
+  </div>
+
+  <!-- TAB 0 : BINARY BITS -->
+  <div class="tab-panel active" id="tabBits">
+
+    <div class="display-screen">
+      <div class="display-label">▌ DISPLAY OUTPUT ▐</div>
+      <div class="display-char" id="displayChar">?</div>
+      <div class="display-info" id="displayInfo">Waiting for input…</div>
+    </div>
+
+    <div class="vwire" id="vwireTop">
+      <div class="spark" id="sparkTop" style="display:none;top:100%"></div>
+    </div>
+
+    <div class="bits-wrap">
+      <div class="bit-labels">
+        <div class="blbl">B6</div><div class="blbl">B5</div><div class="blbl">B4</div>
+        <div class="blbl">B3</div><div class="blbl">B2</div><div class="blbl">B1</div><div class="blbl">B0</div>
+      </div>
+      <div class="bits-row">
+        <div class="bit-box" id="b0">?</div><div class="bit-box" id="b1">?</div>
+        <div class="bit-box" id="b2">?</div><div class="bit-box" id="b3">?</div>
+        <div class="bit-box" id="b4">?</div><div class="bit-box" id="b5">?</div>
+        <div class="bit-box" id="b6">?</div>
+      </div>
+    </div>
+
+    <div class="wires-row">
+      <div class="strand-wrap"><div class="strand" id="s0"><div class="spark" id="sp0" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s1"><div class="spark" id="sp1" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s2"><div class="spark" id="sp2" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s3"><div class="spark" id="sp3" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s4"><div class="spark" id="sp4" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s5"><div class="spark" id="sp5" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="s6"><div class="spark" id="sp6" style="display:none;top:100%"></div></div></div>
+    </div>
+
+    <div class="status-line" id="statusLine">Press any letter key on the keyboard below</div>
+
+    <div class="keyboard-wrap">
+      <div class="kb-header">⌨ KEYBOARD</div>
+      <div class="kb-row" id="kbRow1"></div>
+      <div class="kb-row" id="kbRow2"></div>
+      <div class="kb-row" id="kbRow3"></div>
+      <button class="caps-btn" id="capsBtn" onclick="toggleCaps()">⇪ CAPS LOCK: OFF</button>
+    </div>
+
+  </div><!-- end tab 0 -->
+
+  <!-- TAB 1 : LIGHT BULBS -->
+  <div class="tab-panel" id="tabBulbs">
+
+    <div class="display-screen">
+      <div class="display-label">▌ DISPLAY OUTPUT ▐</div>
+      <div class="display-char" id="bulbChar">?</div>
+      <div class="display-info" id="bulbInfo">Waiting for input…</div>
+    </div>
+
+    <div class="vwire" id="bulbVwire">
+      <div class="spark" id="bulbVspark" style="display:none;top:100%"></div>
+    </div>
+
+    <div class="bulb-wrap">
+      <div class="bit-labels" style="grid-template-columns:repeat(7,56px)">
+        <div class="blbl">B6</div><div class="blbl">B5</div><div class="blbl">B4</div>
+        <div class="blbl">B3</div><div class="blbl">B2</div><div class="blbl">B1</div><div class="blbl">B0</div>
+      </div>
+      <div class="bulb-row">
+        <div class="bulb-box"><img class="bulb-img" id="bulb0" src="bulb_off.png" alt="B6"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb1" src="bulb_off.png" alt="B5"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb2" src="bulb_off.png" alt="B4"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb3" src="bulb_off.png" alt="B3"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb4" src="bulb_off.png" alt="B2"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb5" src="bulb_off.png" alt="B1"></div>
+        <div class="bulb-box"><img class="bulb-img" id="bulb6" src="bulb_off.png" alt="B0"></div>
+      </div>
+    </div>
+
+    <div class="wires-row" style="grid-template-columns:repeat(7,56px)">
+      <div class="strand-wrap"><div class="strand" id="bs0"><div class="spark" id="bsp0" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs1"><div class="spark" id="bsp1" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs2"><div class="spark" id="bsp2" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs3"><div class="spark" id="bsp3" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs4"><div class="spark" id="bsp4" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs5"><div class="spark" id="bsp5" style="display:none;top:100%"></div></div></div>
+      <div class="strand-wrap"><div class="strand" id="bs6"><div class="spark" id="bsp6" style="display:none;top:100%"></div></div></div>
+    </div>
+
+    <div class="status-line" id="bulbStatus">Press any letter key on the keyboard below</div>
+
+    <div class="keyboard-wrap">
+      <div class="kb-header">⌨ KEYBOARD</div>
+      <div class="kb-row" id="bulbRow1"></div>
+      <div class="kb-row" id="bulbRow2"></div>
+      <div class="kb-row" id="bulbRow3"></div>
+      <button class="caps-btn" id="bulbCaps" onclick="toggleCaps()">⇪ CAPS LOCK: OFF</button>
+    </div>
+
+  </div><!-- end tab 1 -->
+</div><!-- end .container -->
+
+<div class="footer">
+  <p>Computer Fundamentals • <a href="topics.html">Return to Topics</a></p>
+</div>
+
+<script>
+  const KB_ROWS = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['Z','X','C','V','B','N','M']
+  ];
+
+  let caps = false;
+  let busy = false;
+  let activeTab = 0;
+
+  // Build BITS keyboard
+  KB_ROWS.forEach((row, ri) => {
+    const rowEl = document.getElementById('kbRow' + (ri + 1));
+    row.forEach(L => {
+      const btn = document.createElement('button');
+      btn.className = 'kb-key'; btn.dataset.key = L; btn.textContent = L;
+      btn.addEventListener('click', () => handleBits(L));
+      rowEl.appendChild(btn);
+    });
+  });
+
+  // Build BULBS keyboard
+  KB_ROWS.forEach((row, ri) => {
+    const rowEl = document.getElementById('bulbRow' + (ri + 1));
+    row.forEach(L => {
+      const btn = document.createElement('button');
+      btn.className = 'kb-key'; btn.dataset.key = L; btn.textContent = L;
+      btn.addEventListener('click', () => handleBulbs(L));
+      rowEl.appendChild(btn);
+    });
+  });
+
+  function switchTab(n) {
+    activeTab = n;
+    busy = false;
+    document.getElementById('tabBits').classList.toggle('active', n === 0);
+    document.getElementById('tabBulbs').classList.toggle('active', n === 1);
+    document.getElementById('tabBtnBits').classList.toggle('active', n === 0);
+    document.getElementById('tabBtnBulbs').classList.toggle('active', n === 1);
+  }
+
+  function toggleCaps() {
+    caps = !caps;
+    document.querySelectorAll('#capsBtn, #bulbCaps').forEach(cb => {
+      cb.textContent = '⧪ CAPS LOCK: ' + (caps ? 'ON' : 'OFF');
+      cb.classList.toggle('caps-on', caps);
+    });
+    document.querySelectorAll('.kb-key').forEach(k => {
+      k.textContent = caps ? k.dataset.key : k.dataset.key.toLowerCase();
+    });
+  }
+
+  function fireSpark(sparkEl, cls, duration, cb) {
+    sparkEl.style.display = 'block';
+    sparkEl.className = 'spark';
+    void sparkEl.offsetWidth;
+    sparkEl.classList.add(cls);
+    setTimeout(() => {
+      sparkEl.style.display = 'none';
+      sparkEl.className = 'spark';
+      if (cb) cb();
+    }, duration);
+  }
+
+  // ── TAB 0 : BINARY BITS ──
+  function setStatus(msg, lit) {
+    const el = document.getElementById('statusLine');
+    el.textContent = msg;
+    el.className = 'status-line' + (lit ? ' on' : '');
+  }
+
+  function resetAll() {
+    for (let i = 0; i < 7; i++) {
+      const box = document.getElementById('b' + i);
+      box.textContent = '?'; box.className = 'bit-box';
+      document.getElementById('s' + i).className = 'strand';
+      document.getElementById('sp' + i).style.display = 'none';
+    }
+    document.getElementById('vwireTop').className = 'vwire';
+    document.getElementById('sparkTop').style.display = 'none';
+    const dc = document.getElementById('displayChar');
+    dc.textContent = '?'; dc.className = 'display-char';
+    document.getElementById('displayInfo').textContent = 'Waiting for input…';
+  }
+
+  function handleBits(letter) {
+    if (busy) return;
+    busy = true;
+    const char = caps ? letter : letter.toLowerCase();
+    const code = char.charCodeAt(0);
+    const bin  = code.toString(2).padStart(7, '0');
+    document.querySelectorAll('#tabBits .kb-key').forEach(k => {
+      if (k.dataset.key === letter) {
+        k.classList.add('pressed');
+        setTimeout(() => k.classList.remove('pressed'), 380);
+      }
+    });
+    resetAll();
+    setStatus('Signal leaving keyboard…', true);
+    const STRAND_DUR = 420, BIT_STEP = 420;
+    for (let i = 0; i < 7; i++) {
+      (function(idx) {
+        setTimeout(() => {
+          fireSpark(document.getElementById('sp' + idx), 'go', STRAND_DUR, () => {
+            document.getElementById('s' + idx).classList.add('lit');
+            const box = document.getElementById('b' + idx);
+            const bit = bin[idx];
+            box.textContent = bit;
+            box.className = 'bit-box pop ' + (bit === '1' ? 'is-one' : 'is-zero');
+            setTimeout(() => box.classList.remove('pop'), 260);
+            setStatus('Wire ' + (idx + 1) + ' of 7 — bit: ' + bit, true);
+          });
+        }, idx * BIT_STEP);
+      })(i);
+    }
+    setTimeout(() => {
+      setStatus('All 7 bits loaded — sending to display…', true);
+      fireSpark(document.getElementById('sparkTop'), 'go-up', 600, () => {
+        document.getElementById('vwireTop').classList.add('lit');
+        const dc = document.getElementById('displayChar');
+        dc.textContent = char; dc.classList.add('lit');
+        document.getElementById('displayInfo').textContent = 'ASCII: ' + code + '  |  Binary: ' + bin;
+        setStatus('Displayed: "' + char + '"  (ASCII ' + code + ' = ' + bin + ')', true);
+        busy = false;
+      });
+    }, 7 * BIT_STEP + STRAND_DUR + 180);
+  }
+
+  // ── TAB 1 : LIGHT BULBS ──
+  function setBulbStatus(msg, lit) {
+    const el = document.getElementById('bulbStatus');
+    el.textContent = msg;
+    el.className = 'status-line' + (lit ? ' on' : '');
+  }
+
+  function resetBulbs() {
+    for (let i = 0; i < 7; i++) {
+      const img = document.getElementById('bulb' + i);
+      img.src = 'bulb_off.png'; img.className = 'bulb-img';
+      document.getElementById('bs' + i).className = 'strand';
+      document.getElementById('bsp' + i).style.display = 'none';
+    }
+    document.getElementById('bulbVwire').className = 'vwire';
+    document.getElementById('bulbVspark').style.display = 'none';
+    const dc = document.getElementById('bulbChar');
+    dc.textContent = '?'; dc.className = 'display-char';
+    document.getElementById('bulbInfo').textContent = 'Waiting for input…';
+  }
+
+  function handleBulbs(letter) {
+    if (busy) return;
+    busy = true;
+    const char = caps ? letter : letter.toLowerCase();
+    const code = char.charCodeAt(0);
+    const bin  = code.toString(2).padStart(7, '0');
+    document.querySelectorAll('#tabBulbs .kb-key').forEach(k => {
+      if (k.dataset.key === letter) {
+        k.classList.add('pressed');
+        setTimeout(() => k.classList.remove('pressed'), 380);
+      }
+    });
+    resetBulbs();
+    setBulbStatus('Signal leaving keyboard…', true);
+    const STRAND_DUR = 420, BIT_STEP = 420;
+    for (let i = 0; i < 7; i++) {
+      (function(idx) {
+        setTimeout(() => {
+          fireSpark(document.getElementById('bsp' + idx), 'go', STRAND_DUR, () => {
+            document.getElementById('bs' + idx).classList.add('lit');
+            const bulb = document.getElementById('bulb' + idx);
+            const bit  = bin[idx];
+            bulb.classList.add('pop');
+            if (bit === '1') {
+              bulb.src = 'bulb_on.png';
+              bulb.classList.add('on');
+            }
+            setTimeout(() => bulb.classList.remove('pop'), 300);
+            setBulbStatus('Wire ' + (idx + 1) + ' of 7 — bulb ' + (bit === '1' ? 'ON 💡' : 'OFF'), true);
+          });
+        }, idx * BIT_STEP);
+      })(i);
+    }
+    setTimeout(() => {
+      setBulbStatus('All bulbs set — sending to display…', true);
+      fireSpark(document.getElementById('bulbVspark'), 'go-up', 600, () => {
+        document.getElementById('bulbVwire').classList.add('lit');
+        const dc = document.getElementById('bulbChar');
+        dc.textContent = char; dc.classList.add('lit');
+        document.getElementById('bulbInfo').textContent = 'ASCII: ' + code + '  |  Binary: ' + bin;
+        setBulbStatus('Displayed: "' + char + '"  (ASCII ' + code + ' = ' + bin + ')', true);
+        busy = false;
+      });
+    }, 7 * BIT_STEP + STRAND_DUR + 180);
+  }
+
+  // Physical keyboard → routes to active tab
+  document.addEventListener('keydown', e => {
+    const k = e.key.toUpperCase();
+    if (/^[A-Z]$/.test(k)) {
+      if (activeTab === 0) handleBits(k);
+      else handleBulbs(k);
+    }
+  });
+</script>
+
+</body>
+</html>

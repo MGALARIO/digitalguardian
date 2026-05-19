@@ -1,2 +1,8 @@
 # Ignore backup folder
 back up folder/
+
+# Ignore backup and reference files
+topics.html
+number in bits.html
+quiz-binary.html
+red.html
