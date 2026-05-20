@@ -504,7 +504,8 @@ function wire(svg, d){
   return {
     path:p,
     set:(on)=> {
-      p.setAttribute('class','wire'+(on?' on':''));
+      p.setAttribute('class','wire');
+      p.style.opacity = '1';
       litPath.style.opacity = on ? '1' : '0';
     },
     pulse:(dur=600, callback)=>{
@@ -533,8 +534,7 @@ function wire(svg, d){
           litPath.style.strokeDasharray = '';
           litPath.style.strokeDashoffset = '';
           litPath.style.opacity = '1';
-          p.setAttribute('class','wire on');
-          p.style.opacity = '0';
+          p.style.opacity = '1';
           if(callback) callback();
         }
       }
@@ -566,8 +566,7 @@ function wire(svg, d){
           litPath.style.strokeDasharray = '';
           litPath.style.strokeDashoffset = '';
           litPath.style.opacity = '1';
-          p.setAttribute('class','wire on');
-          p.style.opacity = '0';
+          p.style.opacity = '1';
         }
       }
       requestAnimationFrame(frame);
