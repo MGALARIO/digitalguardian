@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Logic Gates — A Beginner's Journey</title>
+<style>
+  :root{
+    --bg:#07101a;
+    --panel:#0d1b2a;
+    --panel2:#102438;
+    --ink:#d6e6f2;
+    --muted:#8aa3b8;
+    --accent:#49e0ff;
+    --on:#49e0ff;
+    --off:#2a3e50;
+    --hot:#ffcc44;
+    --good:#66ffb2;
+    --bad:#ff6b6b;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1100px 500px at 20% -10%, #153452 0%, transparent 60%),
+      radial-gradient(900px 400px at 100% 100%, #0a2a40 0%, transparent 60%),
+      var(--bg);
+  }
+
+  /* Header */
+  header{padding:22px 20px 10px;text-align:center}
+  header .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--accent);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    padding: 9px 18px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    transition: all 0.25s ease;
+  }
+  header .back-link:hover { background: var(--accent); color: var(--bg); }
+  header h1{margin:0;font-size:28px;letter-spacing:.3px}
+  header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+  .progressbar{
+    max-width:760px;margin:16px auto 0;height:6px;background:#0a1e2e;
+    border-radius:3px;overflow:hidden;border:1px solid #17324a
+  }
+  .progressbar > div{height:100%;background:linear-gradient(90deg,#1b6a8f,#49e0ff);
+    transition:width .4s ease;box-shadow:0 0 10px rgba(73,224,255,.5)}
+  .steps{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .step{
+    width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    background:#0a1e2e;border:1px solid #1e3f5c;color:var(--muted);
+    font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .2s
+  }
+  .step:hover{border-color:var(--accent)}
+  .step.current{background:#0e3b56;border-color:var(--accent);color:#eaffff;
+    box-shadow:0 0 10px rgba(73,224,255,.45)}
+  .step.done{background:#0a2e1f;border-color:#3a9b66;color:var(--good)}
+
+  /* Main card */
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  .card{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);
+    border:1px solid #1b344c;border-radius:16px;padding:24px 26px;
+    box-shadow:0 8px 28px rgba(0,0,0,.35);
+  }
+  .badge{display:inline-block;font-family:var(--mono);font-size:11px;
+    color:var(--accent);background:#062434;border:1px solid #1e5273;
+    padding:3px 10px;border-radius:20px;letter-spacing:1.2px}
+  h2.title{margin:10px 0 4px;font-size:24px}
+  .subtitle{color:var(--muted);margin:0 0 14px;font-size:14px;font-style:italic}
+  .prose{color:#c9dbe9;font-size:15px}
+  .prose b{color:#eaffff}
+  .prose .kbd{font-family:var(--mono);background:#08263a;border:1px solid #1e4666;
+    padding:2px 6px;border-radius:4px;font-size:13px;color:#bfe8ff}
+
+  .analogy{
+    background:#081f2e;border-left:3px solid var(--hot);padding:12px 14px;
+    border-radius:0 10px 10px 0;margin:14px 0;color:#e6d9b3
+  }
+  .analogy .atitle{color:var(--hot);font-weight:700;font-size:13px;
+    text-transform:uppercase;letter-spacing:1.3px;margin-bottom:4px;font-family:var(--mono)}
+
+  .tryit{
+    background:#0a2a1f;border-left:3px solid var(--good);padding:12px 14px;
+    border-radius:0 10px 10px 0;margin:14px 0;color:#c9f0da
+  }
+  .tryit .atitle{color:var(--good);font-weight:700;font-size:13px;
+    text-transform:uppercase;letter-spacing:1.3px;margin-bottom:4px;font-family:var(--mono)}
+
+  /* Demo stage */
+  .demo{
+    margin:18px 0;background:#061320;border:1px solid #163048;
+    border-radius:12px;padding:18px 8px;
+    background-image:
+      radial-gradient(500px 280px at 50% 50%, #0a2438 0%, transparent 70%);
+  }
+  svg.stage{width:100%;height:auto;display:block;max-height:340px}
+
+  /* Interactive parts */
+  .switch{cursor:pointer}
+  .switch rect,.switch circle{transition:stroke .15s,filter .15s}
+  .switch:hover rect{stroke:var(--accent);filter:drop-shadow(0 0 6px rgba(73,224,255,.45))}
+  .switch:hover circle{stroke:var(--accent)}
+  .switch:active rect{stroke:#ffcc44}
+  .wire{stroke:var(--off);stroke-width:4;fill:none;stroke-linecap:round;transition:stroke .2s}
+  .wire.on{stroke:var(--on);filter:drop-shadow(0 0 12px rgba(73,224,255,.9)) drop-shadow(0 0 24px rgba(73,224,255,.6))}
+  .led-glass{fill:#081420;stroke:#1e4666;stroke-width:2}
+  .led-core{fill:#0a1a26;transition:fill .3s,filter .3s}
+  .led-core.on{fill:#ffd85a;filter:drop-shadow(0 0 12px rgba(255,216,90,.9))}
+  .label{fill:#bfe8ff;font-family:var(--mono);font-size:14px;text-anchor:middle;font-weight:700}
+  .label.small{font-size:11px;fill:#8aa3b8;font-weight:500}
+  .gateshape{fill:#12324a;stroke:#2a6a98;stroke-width:2;transition:all .3s}
+  .gateshape.active{fill:#1c5a82;stroke:var(--accent);
+    filter:drop-shadow(0 0 10px rgba(73,224,255,.5))}
+  .gate-text{fill:#d6e6f2;font-family:var(--mono);font-size:13px;font-weight:700;
+    text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+  .pulse{fill:var(--on);filter:drop-shadow(0 0 8px rgba(73,224,255,.95))}
+
+  /* Truth table */
+  .ttwrap{display:flex;justify-content:center;margin:10px 0 6px}
+  table.tt{border-collapse:collapse;font-family:var(--mono);font-size:14px;
+    background:#08192a;border-radius:10px;overflow:hidden;border:1px solid #1b3e5c}
+  table.tt th,table.tt td{padding:8px 16px;text-align:center;border-bottom:1px solid #153048}
+  table.tt th{background:#0d2a42;color:var(--accent);font-weight:700;
+    letter-spacing:1px;font-size:12px;text-transform:uppercase}
+  table.tt tr:last-child td{border-bottom:none}
+  table.tt tr.cur td{background:#0f4868;color:#eaffff;
+    box-shadow:inset 0 0 0 2px var(--accent)}
+  table.tt td.one{color:var(--on)}
+  table.tt td.zero{color:#516c85}
+
+  /* Nav */
+  .nav{display:flex;justify-content:space-between;align-items:center;
+    margin-top:20px;gap:10px;flex-wrap:wrap}
+  button.navbtn{
+    background:linear-gradient(180deg,#1b6a8f,#0e4a67);color:white;
+    border:1px solid #49e0ff;padding:10px 18px;border-radius:10px;
+    cursor:pointer;font-weight:700;letter-spacing:.5px;font-size:14px;
+    box-shadow:0 0 12px rgba(73,224,255,.25);transition:all .15s
+  }
+  button.navbtn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(73,224,255,.4)}
+  button.navbtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+  button.navbtn.ghost{background:transparent;color:var(--muted);border-color:#1e3f5c;
+    box-shadow:none}
+  button.navbtn.ghost:hover{color:var(--ink);border-color:var(--accent)}
+
+  .link{color:var(--accent);text-decoration:none;border-bottom:1px dashed #2a6a98}
+  .link:hover{border-color:var(--accent)}
+
+  .key-idea{
+    background:#082034;border:1px solid #1e5273;border-radius:10px;
+    padding:12px 14px;margin:14px 0;font-size:14px
+  }
+  .key-idea b{color:var(--accent)}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  <h1>⚡ Logic Gates — A Beginner's Journey</h1>
+  <p>No experience needed. Click switches. Watch lights. Build intuition.</p>
+  <div class="progressbar"><div id="pbar" style="width:0%"></div></div>
+  <div class="steps" id="steps"></div>
+</header>
+
+<div class="wrap">
+  <div class="card" id="card">
+    <!-- lesson content injected here -->
+  </div>
+
+  <div class="nav">
+    <button class="navbtn ghost" id="prev">← Previous</button>
+    <div style="color:var(--muted);font-family:var(--mono);font-size:13px" id="counter"></div>
+    <button class="navbtn" id="next">Next →</button>
+  </div>
+</div>
+
+<footer>
+  When you're ready for the full picture,
+  <a class="link" href="index.html">launch the full 4-bit ALU visualizer →</a>
+</footer>
+
+<script>
+/* =======================================================
+   LESSONS
+======================================================= */
+const lessons = [
+  {
+    id:'bits',
+    badge:'LESSON 1 / 7',
+    title:'Bits — The Language of Computers',
+    subtitle:'Everything a computer does is built on just two symbols.',
+    intro:`
+      A <b>bit</b> is the smallest piece of information. It can only be one of two things:
+      <b>0</b> (off, false, no) or <b>1</b> (on, true, yes).
+      Inside a real computer, a 1 is a tiny burst of electricity and a 0 is no electricity.
+      That's it. Every photo, video, message, and game on your phone is millions of bits.
+    `,
+    analogy:{
+      t:'Real-world analogy',
+      body:`A <b>light switch</b>. It's either <b>OFF</b> (bit = 0) or <b>ON</b> (bit = 1).
+            You can't flip it "halfway". Computers work the same way.`
+    },
+    demo:'bit',
+    tryit:'Click the switch below. Watch the electricity flow through the wire and light the bulb.',
+    keyIdea:`<b>Key idea:</b> A bit has exactly two states. Every gate you'll learn next takes bits in and puts bits out.`
+  },
+  {
+    id:'not',
+    badge:'LESSON 2 / 7',
+    title:'The NOT Gate — The Flipper',
+    subtitle:'The simplest gate: it turns 0 into 1, and 1 into 0.',
+    intro:`
+      A <b>NOT gate</b> (also called an <b>inverter</b>) takes <b>one</b> bit and flips it.
+      If you feed it a 0, it outputs a 1. If you feed it a 1, it outputs a 0.
+      It's the contrarian of the gate world — whatever you say, it says the opposite.
+    `,
+    analogy:{
+      t:'Real-world analogy',
+      body:`Imagine a <b>toddler saying "no" to everything</b>. You say "eat your vegetables" (1),
+            they say "no!" (0). You say "don't eat candy" (0), they say "yes!" (1). That's a NOT gate.`
+    },
+    demo:'not',
+    tryit:'Click the input switch. Notice: the bulb lights up when the switch is OFF.',
+    keyIdea:`<b>Symbol:</b> a triangle with a small circle on the tip — the circle means "invert".<br>
+             <b>Formula:</b> <span class="kbd">Y = NOT A</span> (written <span class="kbd">¬A</span> or <span class="kbd">!A</span>)`
+  },
+  {
+    id:'and',
+    badge:'LESSON 3 / 7',
+    title:'The AND Gate — Both Required',
+    subtitle:'Output is 1 only when every input is 1.',
+    intro:`
+      An <b>AND gate</b> takes <b>two</b> inputs and gives a 1 <i>only if both inputs are 1</i>.
+      If either one is 0, the output is 0. It's strict — it demands agreement.
+    `,
+    analogy:{
+      t:'Real-world analogy',
+      body:`A <b>nuclear-missile launch</b>. Two officers must <i>both</i> turn their keys
+            at the same moment. Key 1 turned AND Key 2 turned → launch (1).
+            Either key missing → nothing happens (0).<br><br>
+            A simpler one: an ATM gives you money only if you have the <b>card</b> AND know the <b>PIN</b>.`
+    },
+    demo:'and',
+    tryit:'Try all four combinations. Only one lights the bulb — which one?',
+    keyIdea:`<b>Symbol:</b> a D-shape (flat back, round front).<br>
+             <b>Formula:</b> <span class="kbd">Y = A AND B</span> (written <span class="kbd">A · B</span>)`
+  },
+  {
+    id:'or',
+    badge:'LESSON 4 / 7',
+    title:'The OR Gate — Either Works',
+    subtitle:'Output is 1 if any input is 1.',
+    intro:`
+      An <b>OR gate</b> is generous. If <i>at least one</i> of its inputs is 1, it outputs 1.
+      It only outputs 0 when <b>all</b> inputs are 0.
+    `,
+    analogy:{
+      t:'Real-world analogy',
+      body:`A <b>burglar alarm</b>. It sounds if the <b>front door opens</b> OR the <b>window breaks</b>
+            OR the <b>motion sensor triggers</b>. Any one of them is enough.`
+    },
+    demo:'or',
+    tryit:'Find out: what is the only combination where the bulb stays off?',
+    keyIdea:`<b>Symbol:</b> a shield shape with a curved back and pointed front.<br>
+             <b>Formula:</b> <span class="kbd">Y = A OR B</span> (written <span class="kbd">A + B</span>)`
+  },
+  {
+    id:'xor',
+    badge:'LESSON 5 / 7',
+    title:'The XOR Gate — Exactly One',
+    subtitle:'Output is 1 only when inputs are different.',
+    intro:`
+      <b>XOR</b> stands for <i>"exclusive OR"</i>. It's picky: it outputs 1 only when
+      its two inputs <b>disagree</b>. Same inputs (0,0 or 1,1) → output 0. Different inputs → output 1.
+      This gate is the secret ingredient of <b>addition</b>.
+    `,
+    analogy:{
+      t:'Real-world analogy',
+      body:`Two <b>stair light switches</b> — one upstairs, one downstairs. Flip either one and
+            the hall light toggles. If both are in the same position the light is off;
+            if they're in different positions the light is on. That's XOR.`
+    },
+    demo:'xor',
+    tryit:'Try it. Now imagine: 1 XOR 1 = 0. But 1+1 in math is 2 (which is binary "10"). Hmm, close…',
+    keyIdea:`XOR gives you the <b>sum bit</b> of 1+1 (which is 0, with a carry). You'll use this in Lesson 7.<br>
+             <b>Formula:</b> <span class="kbd">Y = A XOR B</span> (written <span class="kbd">A ⊕ B</span>)`
+  },
+  {
+    id:'combo',
+    badge:'LESSON 6 / 7',
+    title:'Combining Gates — Building Bigger Things',
+    subtitle:'Every complex circuit is just small gates wired together.',
+    intro:`
+      Here's the magic: <b>every gate in the world can be built from just NOT, AND, and OR.</b>
+      Watch this — we'll build an <b>XOR gate</b> from scratch using only those three.<br><br>
+      The recipe: <span class="kbd">A XOR B = (A OR B) AND NOT(A AND B)</span><br>
+      In English: "at least one is on, but not both".
+    `,
+    analogy:{
+      t:'Why this matters',
+      body:`Your CPU has <b>billions</b> of gates, but they're all made of these same handful of types.
+            Complexity comes from how they're <i>connected</i>, not from exotic parts.`
+    },
+    demo:'combo',
+    tryit:'Toggle A and B. Watch the signals flow through all four gates and meet at the end.',
+    keyIdea:`<b>Key idea:</b> Gates can feed into other gates. The output of one becomes the input of another.
+             This is how entire computers are built.`
+  },
+  {
+    id:'adder',
+    badge:'LESSON 7 / 7',
+    title:'Your First Computer Circuit: The Half-Adder',
+    subtitle:'Two gates. One circuit. Real binary addition.',
+    intro:`
+      Time to actually <b>add numbers</b>. A <b>half-adder</b> takes two 1-bit numbers (A and B)
+      and produces two outputs: the <b>Sum</b> and the <b>Carry</b>.<br><br>
+      Look at binary addition of 1-bit numbers:
+      <span class="kbd">0+0=0</span>, <span class="kbd">0+1=1</span>, <span class="kbd">1+0=1</span>,
+      <span class="kbd">1+1=10</span> (that's "two" in binary — a sum of 0 and a carry of 1).<br><br>
+      Notice the <b>Sum</b> column matches XOR exactly. The <b>Carry</b> column matches AND exactly.
+      So we just wire them up in parallel!
+    `,
+    analogy:{
+      t:'The big reveal',
+      body:`This tiny circuit — one XOR and one AND — is the seed of every math operation
+            in every computer ever made. Chain four of these together (with one more gate for carry-in)
+            and you can add any two 4-bit numbers. That's exactly what the ALU visualizer does.`
+    },
+    demo:'adder',
+    tryit:'Try 1 + 1. You should see Sum = 0 and Carry = 1 — which together spell binary "10" = 2. You just built addition!',
+    keyIdea:`<b>You\'re done.</b> You now understand the foundation of every digital device on Earth.
+             Ready to see how a real 4-bit CPU does math?
+             <a class="link" href="index.html">Launch the full ALU Visualizer →</a>`
+  }
+];
+
+/* =======================================================
+   RENDER
+======================================================= */
+const SVGNS='http://www.w3.org/2000/svg';
+const card = document.getElementById('card');
+const stepsEl = document.getElementById('steps');
+const pbar = document.getElementById('pbar');
+const counter = document.getElementById('counter');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+
+let current = 0;
+const doneSet = new Set();
+
+/* render step pills */
+lessons.forEach((l,i)=>{
+  const s=document.createElement('div');
+  s.className='step'; s.textContent=i+1;
+  s.addEventListener('click',()=>go(i));
+  stepsEl.appendChild(s);
+});
+
+function updatePills(){
+  [...stepsEl.children].forEach((el,i)=>{
+    el.classList.toggle('current', i===current);
+    el.classList.toggle('done', doneSet.has(i) && i!==current);
+  });
+  pbar.style.width = ((current+1)/lessons.length*100)+'%';
+  counter.textContent = `Lesson ${current+1} of ${lessons.length}`;
+  prevBtn.disabled = current===0;
+  nextBtn.textContent = current===lessons.length-1 ? 'Finish ✓' : 'Next →';
+}
+
+function go(i){
+  current = Math.max(0, Math.min(lessons.length-1, i));
+  doneSet.add(current);
+  renderLesson();
+  updatePills();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+prevBtn.addEventListener('click',()=>go(current-1));
+nextBtn.addEventListener('click',()=>go(current+1));
+
+function renderLesson(){
+  const l = lessons[current];
+  card.innerHTML = `
+    <div class="badge">${l.badge}</div>
+    <h2 class="title">${l.title}</h2>
+    <div class="subtitle">${l.subtitle}</div>
+    <div class="prose">${l.intro}</div>
+    <div class="analogy"><div class="atitle">${l.analogy.t}</div>${l.analogy.body}</div>
+    <div class="demo" id="demo"></div>
+    <div class="tryit"><div class="atitle">Try it</div>${l.tryit}</div>
+    <div class="key-idea">${l.keyIdea}</div>
+  `;
+  buildDemo(l.demo);
+}
+
+/* =======================================================
+   DEMOS
+======================================================= */
+function el(tag, attrs={}, parent){
+  const e=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+
+/* Shapes */
+function drawAND(svg, cx, cy, scale=1, cls='gateshape'){
+  const g = el('g',{transform:`translate(${cx},${cy}) scale(${scale})`},svg);
+  const w=30, h=40;
+  const p = el('path',{
+    d:`M ${-w},${-h/2} L 0,${-h/2} A ${h/2},${h/2} 0 0 1 0,${h/2} L ${-w},${h/2} Z`,
+    class:cls
+  },g);
+  return {group:g, shape:p, inL:{x:cx-w, y:cy-h/4}, inL2:{x:cx-w, y:cy+h/4}, out:{x:cx+h/2, y:cy}};
+}
+function drawOR(svg, cx, cy, scale=1, cls='gateshape'){
+  const g = el('g',{transform:`translate(${cx},${cy}) scale(${scale})`},svg);
+  // OR: curved back + pointed front (width ~50, height 40)
+  const p = el('path',{
+    d:`M -30,-20 Q -15,0 -30,20 Q 0,20 25,0 Q 0,-20 -30,-20 Z`,
+    class:cls
+  },g);
+  return {group:g, shape:p,
+    inL:{x:cx-25, y:cy-10}, inL2:{x:cx-25, y:cy+10}, out:{x:cx+25, y:cy}};
+}
+function drawXOR(svg, cx, cy, scale=1, cls='gateshape'){
+  const g = el('g',{transform:`translate(${cx},${cy}) scale(${scale})`},svg);
+  // XOR = OR with extra arc behind
+  el('path',{d:`M -36,-20 Q -22,0 -36,20`,
+    fill:'none',stroke:'#2a6a98','stroke-width':2,class:cls+' xorback'},g);
+  const p = el('path',{
+    d:`M -28,-20 Q -13,0 -28,20 Q 0,20 25,0 Q 0,-20 -28,-20 Z`,
+    class:cls
+  },g);
+  return {group:g, shape:p,
+    inL:{x:cx-25, y:cy-10}, inL2:{x:cx-25, y:cy+10}, out:{x:cx+25, y:cy}};
+}
+function drawNOT(svg, cx, cy, scale=1, cls='gateshape'){
+  const g = el('g',{transform:`translate(${cx},${cy}) scale(${scale})`},svg);
+  const p = el('path',{
+    d:`M -20,-18 L 18,0 L -20,18 Z`, class:cls
+  },g);
+  const dot = el('circle',{cx:22,cy:0,r:4,class:cls},g);
+  return {group:g, shape:p, dot, inL:{x:cx-20, y:cy}, out:{x:cx+26, y:cy}};
+}
+
+/* Switch: a simple toggle drawn as a lever */
+function drawSwitch(svg, cx, cy, label, onToggle){
+  const g = el('g',{class:'switch',transform:`translate(${cx},${cy})`},svg);
+  const base = el('rect',{x:-26,y:-16,width:52,height:32,rx:8,ry:8,
+    fill:'#0a1e2e',stroke:'#2a587d','stroke-width':2},g);
+  const knob = el('circle',{cx:-12,cy:0,r:11,fill:'#2a3e50',stroke:'#4a6076','stroke-width':2},g);
+  const t = el('text',{x:0,y:38,class:'label'},g); t.textContent=label;
+  const state = el('text',{x:0,y:-22,class:'label small'},g); state.textContent='0';
+  let on=false;
+  g.addEventListener('click',()=>{
+    on=!on;
+    knob.setAttribute('cx', on? 12 : -12);
+    knob.setAttribute('fill', on? '#49e0ff':'#2a3e50');
+    knob.setAttribute('stroke', on? '#bff2ff':'#4a6076');
+    state.textContent = on?'1':'0';
+    state.setAttribute('fill', on? '#49e0ff':'#8aa3b8');
+    onToggle(on);
+  });
+  return {group:g, get:()=>on, set:(v)=>{ if(v!==on) g.dispatchEvent(new Event('click')); }};
+}
+
+/* LED (light bulb) */
+function drawLED(svg, cx, cy, label){
+  const g = el('g',{transform:`translate(${cx},${cy})`},svg);
+  const img = el('image',{
+    x:-20,y:-28,width:40,height:56,
+    href:'bulb_off.png',
+    class:'bulb-img'
+  },g);
+  const t = el('text',{x:0,y:42,class:'label'},g); t.textContent=label;
+  const stateT = el('text',{x:0,y:-28,class:'label small'},g); stateT.textContent='0';
+  return {
+    set:(on)=>{
+      img.setAttribute('href', on ? 'bulb_on.png' : 'bulb_off.png');
+      stateT.textContent = on?'1':'0';
+      stateT.setAttribute('fill', on? '#ffd85a':'#8aa3b8');
+    }
+  };
+}
+
+/* Wire as a path; set on/off + optional pulse animation */
+function wire(svg, d){
+  const p = el('path',{d, class:'wire'}, svg);
+  // Create a duplicate path for the lit portion
+  const litPath = el('path',{d, class:'wire on', style:'opacity:0'}, svg);
+  return {
+    path:p,
+    set:(on)=> {
+      p.setAttribute('class','wire'+(on?' on':''));
+      litPath.style.opacity = on ? '1' : '0';
+    },
+    pulse:(dur=600, callback)=>{
+      const len = p.getTotalLength();
+      const pulse = el('circle',{
+        r:6,
+        fill:'#49e0ff',
+        'filter':'drop-shadow(0 0 15px #49e0ff) drop-shadow(0 0 30px #49e0ff)'
+      }, svg);
+      const start = performance.now();
+      // Set up stroke-dasharray for progressive reveal on lit path
+      litPath.style.strokeDasharray = len;
+      litPath.style.strokeDashoffset = len;
+      litPath.style.opacity = '1';
+      
+      function frame(t){
+        const k = Math.min(1,(t-start)/dur);
+        const pt = p.getPointAtLength(k*len);
+        pulse.setAttribute('cx',pt.x);
+        pulse.setAttribute('cy',pt.y);
+        // Progressively reveal lit path from start to current pulse position
+        litPath.style.strokeDashoffset = len * (1 - k);
+        
+        if(k<1) requestAnimationFrame(frame); else {
+          pulse.remove();
+          litPath.style.strokeDasharray = '';
+          litPath.style.strokeDashoffset = '';
+          litPath.style.opacity = '1';
+          p.setAttribute('class','wire on');
+          p.style.opacity = '0';
+          if(callback) callback();
+        }
+      }
+      requestAnimationFrame(frame);
+    },
+    pulseAndSet:(dur=600)=>{
+      const len = p.getTotalLength();
+      const pulse = el('circle',{
+        r:6,
+        fill:'#49e0ff',
+        'filter':'drop-shadow(0 0 15px #49e0ff) drop-shadow(0 0 30px #49e0ff)'
+      }, svg);
+      const start = performance.now();
+      // Set up stroke-dasharray for progressive reveal on lit path
+      litPath.style.strokeDasharray = len;
+      litPath.style.strokeDashoffset = len;
+      litPath.style.opacity = '1';
+      
+      function frame(t){
+        const k = Math.min(1,(t-start)/dur);
+        const pt = p.getPointAtLength(k*len);
+        pulse.setAttribute('cx',pt.x);
+        pulse.setAttribute('cy',pt.y);
+        // Progressively reveal lit path from start to current pulse position
+        litPath.style.strokeDashoffset = len * (1 - k);
+        
+        if(k<1) requestAnimationFrame(frame); else {
+          pulse.remove();
+          litPath.style.strokeDasharray = '';
+          litPath.style.strokeDashoffset = '';
+          litPath.style.opacity = '1';
+          p.setAttribute('class','wire on');
+          p.style.opacity = '0';
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+  };
+}
+
+/* Truth table */
+function truthTable(parent, header, rows, getCurrentIdx){
+  const wrap = document.createElement('div'); wrap.className='ttwrap';
+  const t = document.createElement('table'); t.className='tt';
+  const thead = t.insertRow(); header.forEach(h=>{
+    const th=document.createElement('th'); th.textContent=h; thead.appendChild(th);
+  });
+  const trs = rows.map((r,i)=>{
+    const tr = t.insertRow();
+    r.forEach((v,j)=>{
+      const td=tr.insertCell(); td.textContent=v;
+      if(j>=header.length-(r.length - (header.length - r.length))) {} // noop
+      td.className = (v==='1'?'one':v==='0'?'zero':'');
+    });
+    return tr;
+  });
+  wrap.appendChild(t); parent.appendChild(wrap);
+  return {
+    update:()=>{
+      const idx = getCurrentIdx();
+      trs.forEach((tr,i)=>tr.classList.toggle('cur', i===idx));
+    }
+  };
+}
+
+/* =======================================================
+   DEMO BUILDERS
+======================================================= */
+function buildDemo(kind){
+  const host = document.getElementById('demo');
+  host.innerHTML='';
+  const svg = el('svg',{class:'stage', viewBox:'0 0 700 280',
+    preserveAspectRatio:'xMidYMid meet'});
+  host.appendChild(svg);
+
+  if(kind==='bit') return demoBit(svg, host);
+  if(kind==='not') return demoSingle(svg, host, 'NOT');
+  if(kind==='and') return demoTwo(svg, host, 'AND');
+  if(kind==='or')  return demoTwo(svg, host, 'OR');
+  if(kind==='xor') return demoTwo(svg, host, 'XOR');
+  if(kind==='combo') return demoCombo(svg, host);
+  if(kind==='adder') return demoAdder(svg, host);
+}
+
+/* Lesson 1: switch -> wire -> LED */
+function demoBit(svg, host){
+  const led = drawLED(svg, 540, 140, 'BULB');
+  const w = wire(svg, 'M 180,140 L 520,140');
+  const sw = drawSwitch(svg, 130, 140, 'SWITCH', (on)=>{
+    if(on) {
+      w.pulseAndSet(1500);
+      setTimeout(()=>led.set(true), 1500);
+    } else {
+      w.set(false);
+      led.set(false);
+    }
+  });
+  el('text',{x:350,y:175,class:'label small'},svg).textContent='electricity flows →';
+}
+
+/* Generic single-input gate (NOT) */
+function demoSingle(svg, host, kind){
+  const led = drawLED(svg, 600, 140, 'OUT');
+  const gate = drawNOT(svg, 380, 140, 1.4);
+  const w1 = wire(svg, 'M 170,140 L 355,140');
+  const w2 = wire(svg, 'M 410,140 L 580,140');
+  let A=false;
+  function recompute(){
+    const out = !A;
+    if(A) {
+      w1.pulseAndSet(1200);
+    } else {
+      w1.set(false);
+    }
+    gate.shape.setAttribute('class','gateshape active');
+    gate.dot.setAttribute('class','gateshape active');
+    setTimeout(()=>{
+      if(out) {
+        w2.pulseAndSet(1200);
+      } else {
+        w2.set(false);
+      }
+      led.set(out);
+      tt.update();
+    },1200);
+  }
+  const sw = drawSwitch(svg, 120, 140, 'A', (on)=>{
+    A=on;
+    recompute();
+  });
+  el('text',{x:380,y:100,class:'label'},svg).textContent='NOT';
+
+  const tt = truthTable(host, ['A','Y = NOT A'],
+    [['0','1'],['1','0']], ()=> A?1:0);
+  recompute();
+  tt.update();
+}
+
+/* Generic two-input gate */
+function demoTwo(svg, host, kind){
+  const led = drawLED(svg, 600, 140, 'OUT');
+  let gate;
+  if(kind==='AND') gate = drawAND(svg, 380, 140, 1.5);
+  else if(kind==='OR') gate = drawOR(svg, 380, 140, 1.4);
+  else gate = drawXOR(svg, 380, 140, 1.4);
+
+  // input wires to gate
+  const w1 = wire(svg, `M 170,90 L 260,90 L 260,125 L ${kind==='AND'?335:350},125`);
+  const w2 = wire(svg, `M 170,190 L 260,190 L 260,155 L ${kind==='AND'?335:350},155`);
+  const w3 = wire(svg, `M ${kind==='AND'?420:410},140 L 580,140`);
+
+  let A=false, B=false;
+  function compute(){
+    if(kind==='AND') return A && B;
+    if(kind==='OR')  return A || B;
+    return A !== B;
+  }
+  function recompute(pulse=false){
+    if(pulse) {
+      if(A) w1.pulseAndSet(1200); else w1.set(false);
+      if(B) w2.pulseAndSet(1200); else w2.set(false);
+    } else {
+      w1.set(A); w2.set(B);
+    }
+    const out = compute();
+    setTimeout(()=>{
+      gate.shape.setAttribute('class','gateshape'+(out?' active':''));
+      if(pulse) {
+        if(out) w3.pulseAndSet(1200); else w3.set(false);
+      } else {
+        w3.set(out);
+      }
+      setTimeout(()=>{ led.set(out); tt.update(); }, pulse?1200:0);
+    }, pulse?1200:0);
+  }
+  drawSwitch(svg, 120, 90, 'A', (on)=>{ A=on; recompute(true); });
+  drawSwitch(svg, 120, 190, 'B', (on)=>{ B=on; recompute(true); });
+  el('text',{x:380,y:90,class:'label'},svg).textContent=kind;
+
+  const rows = [
+    ['0','0', kind==='AND'?'0':kind==='OR'?'0':'0'],
+    ['0','1', kind==='AND'?'0':'1'],
+    ['1','0', kind==='AND'?'0':'1'],
+    ['1','1', kind==='AND'?'1':kind==='OR'?'1':'0'],
+  ];
+  const tt = truthTable(host, ['A','B',`Y = A ${kind} B`], rows,
+    ()=> (A?2:0)+(B?1:0));
+  recompute(false);
+  tt.update();
+}
+
+/* Lesson 6: XOR built from NOT + AND + OR
+   XOR = (A OR B) AND NOT(A AND B)
+*/
+function demoCombo(svg, host){
+  svg.setAttribute('viewBox','0 0 780 320');
+
+  const led = drawLED(svg, 720, 160, 'Y');
+
+  // Gates
+  const gOR  = drawOR(svg, 320, 90, 1.1);
+  const gAND = drawAND(svg, 320, 230, 1.1);
+  const gNOT = drawNOT(svg, 470, 230, 1.1);
+  const gAND2= drawAND(svg, 600, 160, 1.1);
+
+  // Wires from A and B to both OR and AND (fanout)
+  const wA_OR  = wire(svg, 'M 120,90 L 200,90 L 200,78 L 295,78');
+  const wA_AND = wire(svg, 'M 120,90 L 200,90 L 200,218 L 295,218');
+  const wB_OR  = wire(svg, 'M 120,220 L 170,220 L 170,102 L 295,102');
+  const wB_AND = wire(svg, 'M 120,220 L 170,220 L 170,242 L 295,242');
+
+  // OR -> AND2 (top input)
+  const wOR_out = wire(svg, 'M 345,90 L 520,90 L 520,145 L 570,145');
+  // AND -> NOT -> AND2 (bottom input)
+  const wAND_out = wire(svg, 'M 345,230 L 450,230');
+  const wNOT_out = wire(svg, 'M 496,230 L 540,230 L 540,175 L 570,175');
+  // AND2 -> LED
+  const wOut = wire(svg, 'M 640,160 L 700,160');
+
+  // Labels
+  el('text',{x:320,y:52,class:'label'},svg).textContent='OR';
+  el('text',{x:320,y:270,class:'label'},svg).textContent='AND';
+  el('text',{x:470,y:270,class:'label'},svg).textContent='NOT';
+  el('text',{x:600,y:122,class:'label'},svg).textContent='AND';
+  el('text',{x:390,y:310,class:'label small'},svg).textContent='(A OR B) AND NOT(A AND B)  =  A XOR B';
+
+  let A=false, B=false;
+  function recompute(pulse=false){
+    const orOut  = A || B;
+    const andOut = A && B;
+    const notOut = !andOut;
+    const out    = orOut && notOut;
+
+    if(pulse) {
+      if(A) { wA_OR.pulseAndSet(1500); wA_AND.pulseAndSet(1500); } else { wA_OR.set(false); wA_AND.set(false); }
+      if(B) { wB_OR.pulseAndSet(1500); wB_AND.pulseAndSet(1500); } else { wB_OR.set(false); wB_AND.set(false); }
+    } else {
+      wA_OR.set(A); wA_AND.set(A);
+      wB_OR.set(B); wB_AND.set(B);
+    }
+    setTimeout(()=>{
+      gOR.shape.setAttribute('class','gateshape'+(orOut?' active':''));
+      gAND.shape.setAttribute('class','gateshape'+(andOut?' active':''));
+      if(pulse) {
+        if(orOut) wOR_out.pulseAndSet(1200); else wOR_out.set(false);
+        if(andOut) wAND_out.pulseAndSet(1200); else wAND_out.set(false);
+      } else {
+        wOR_out.set(orOut);
+        wAND_out.set(andOut);
+      }
+      setTimeout(()=>{
+        gNOT.shape.setAttribute('class','gateshape active'); // always "working"
+        gNOT.dot.setAttribute('class','gateshape active');
+        if(pulse) {
+          if(notOut) wNOT_out.pulseAndSet(1200); else wNOT_out.set(false);
+        } else {
+          wNOT_out.set(notOut);
+        }
+        setTimeout(()=>{
+          gAND2.shape.setAttribute('class','gateshape'+(out?' active':''));
+          if(pulse) {
+            if(out) wOut.pulseAndSet(1200); else wOut.set(false);
+          } else {
+            wOut.set(out);
+          }
+          setTimeout(()=>{ led.set(out); tt.update(); }, pulse?1200:0);
+        }, pulse?1200:0);
+      }, pulse?1200:0);
+    }, pulse?1200:0);
+  }
+  drawSwitch(svg, 70, 90, 'A', on=>{ A=on; recompute(true); });
+  drawSwitch(svg, 70, 220, 'B', on=>{ B=on; recompute(true); });
+
+  const tt = truthTable(host, ['A','B','Y'],
+    [['0','0','0'],['0','1','1'],['1','0','1'],['1','1','0']],
+    ()=> (A?2:0)+(B?1:0));
+  recompute(false);
+  tt.update();
+}
+
+/* Lesson 7: Half adder — A, B -> Sum (XOR), Carry (AND) */
+function demoAdder(svg, host){
+  svg.setAttribute('viewBox','0 0 720 320');
+
+  const ledSum   = drawLED(svg, 620, 100, 'SUM');
+  const ledCarry = drawLED(svg, 620, 220, 'CARRY');
+
+  const gXOR = drawXOR(svg, 380, 100, 1.3);
+  const gAND = drawAND(svg, 380, 220, 1.3);
+
+  const wA_XOR = wire(svg, 'M 120,90 L 240,90');
+  const wA_AND = wire(svg, 'M 120,90 L 200,90 L 200,210 L 340,210');
+  const wB_XOR = wire(svg, 'M 120,220 L 170,220 L 170,110 L 240,110');
+  const wB_AND = wire(svg, 'M 120,220 L 340,220 L 340,230');
+
+  const wXOR_out = wire(svg, 'M 410,100 L 600,100');
+  const wAND_out = wire(svg, 'M 420,220 L 600,220');
+
+  el('text',{x:380,y:62,class:'label'},svg).textContent='XOR';
+  el('text',{x:380,y:260,class:'label'},svg).textContent='AND';
+  el('text',{x:360,y:310,class:'label small'},svg).textContent='SUM = A XOR B    CARRY = A AND B';
+
+  let A=false, B=false;
+  function recompute(pulse=false){
+    const sum = A !== B;
+    const carry = A && B;
+    if(pulse) {
+      if(A) { wA_XOR.pulseAndSet(1500); wA_AND.pulseAndSet(1500); } else { wA_XOR.set(false); wA_AND.set(false); }
+      if(B) { wB_XOR.pulseAndSet(1500); wB_AND.pulseAndSet(1500); } else { wB_XOR.set(false); wB_AND.set(false); }
+    } else {
+      wA_XOR.set(A); wA_AND.set(A); wB_XOR.set(B); wB_AND.set(B);
+    }
+    setTimeout(()=>{
+      gXOR.shape.setAttribute('class','gateshape'+(sum?' active':''));
+      gAND.shape.setAttribute('class','gateshape'+(carry?' active':''));
+      if(pulse) {
+        if(sum) wXOR_out.pulseAndSet(1200); else wXOR_out.set(false);
+        if(carry) wAND_out.pulseAndSet(1200); else wAND_out.set(false);
+      } else {
+        wXOR_out.set(sum); wAND_out.set(carry);
+      }
+      setTimeout(()=>{
+        ledSum.set(sum); ledCarry.set(carry); tt.update();
+      }, pulse?1200:0);
+    }, pulse?1200:0);
+  }
+  drawSwitch(svg, 70, 90, 'A', on=>{ A=on; recompute(true); });
+  drawSwitch(svg, 70, 220, 'B', on=>{ B=on; recompute(true); });
+
+  const tt = truthTable(host, ['A','B','SUM','CARRY','Decimal'],
+    [
+      ['0','0','0','0','0 + 0 = 0'],
+      ['0','1','1','0','0 + 1 = 1'],
+      ['1','0','1','0','1 + 0 = 1'],
+      ['1','1','0','1','1 + 1 = 2 (binary 10)']
+    ],
+    ()=> (A?2:0)+(B?1:0));
+  recompute(false);
+  tt.update();
+}
+
+/* kick off */
+go(0);
+</script>
+</body>
+</html>
