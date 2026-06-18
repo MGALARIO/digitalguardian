@@ -137,12 +137,13 @@ body::before {
 }
 .search-input::placeholder { color: var(--muted); }
 .bar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
-.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pills { display: flex; gap: 5px; flex-wrap: wrap; }
 .pill {
   font-family: var(--mono); font-size: 0.58rem; letter-spacing: 1.5px;
   text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.1); color: var(--muted);
   cursor: pointer; transition: all 0.2s; user-select: none;
+  white-space: nowrap;
 }
 .pill[data-active="true"] {
   border-color: var(--accent); color: var(--accent);
@@ -517,13 +518,10 @@ body::before {
   .search-wrap { width: 100%; }
   .bar-sep { display: none; }
   .pills {
-    flex-wrap: nowrap; overflow-x: auto;
-    gap: 6px; padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-wrap: wrap;
+    gap: 5px;
   }
-  .pills::-webkit-scrollbar { display: none; }
-  .pill { flex-shrink: 0; font-size: 0.52rem; padding: 4px 9px; }
+  .pill { font-size: 0.5rem; padding: 4px 9px; letter-spacing: 1px; }
 
   /* LIBRARY */
   .library { padding: 20px 12px 20px; }
