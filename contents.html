@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Guardian — Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #050508;
+  --text:   #cfe8ff;
+  --muted:  #7a93a8;
+  --accent: #49e0ff;
+  --power:  #ff4444;
+  --success:#44ff88;
+  --mono:   'Fira Code', monospace;
+  --sans:   'Inter', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 60px;
+}
+
+/* ── Ambient background ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 10% 15%, rgba(73,224,255,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 85%, rgba(180,74,255,0.06) 0%, transparent 50%);
+}
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(73,224,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(73,224,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Scanner beam ── */
+.scanner {
+  position: fixed; left: 0; right: 0; height: 1px; z-index: 2; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(73,224,255,0.6), transparent);
+  animation: scanLine 10s linear infinite;
+}
+@keyframes scanLine {
+  0%   { top: 64px; opacity: 0; }
+  5%   { opacity: 1; }
+  90%  { top: 100vh; opacity: 0.4; }
+  100% { top: 100vh; opacity: 0; }
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 64px; padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(5,5,8,0.94);
+  border-bottom: 1px solid rgba(73,224,255,0.1);
+  backdrop-filter: blur(14px);
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.nav-brand-ring {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 10px rgba(73,224,255,0.25);
+}
+.nav-brand-ring svg { color: var(--accent); }
+.nav-brand-name {
+  font-family: var(--mono); font-size: 0.9rem; font-weight: 700;
+  color: var(--accent); letter-spacing: 1px;
+}
+.nav-center {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.nav-center-title {
+  font-family: var(--mono); font-size: 0.75rem;
+  color: var(--text); letter-spacing: 4px; text-transform: uppercase;
+}
+.nav-center-sub {
+  font-family: var(--mono); font-size: 0.55rem;
+  color: var(--muted); letter-spacing: 3px; text-transform: uppercase;
+}
+.nav-pills { display: flex; gap: 8px; }
+.nav-pill {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 2px;
+  text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+  border: 1px solid rgba(73,224,255,0.18); color: var(--muted);
+}
+.nav-pill span { color: var(--accent); margin-right: 4px; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  position: sticky; top: 64px; z-index: 90;
+  padding: 12px 32px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: rgba(5,5,8,0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+}
+.search-wrap { position: relative; width: 260px; flex-shrink: 0; }
+.search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none; width: 13px; height: 13px;
+}
+.search-input {
+  width: 100%; background: rgba(73,224,255,0.04);
+  border: 1px solid rgba(73,224,255,0.14); border-radius: 6px;
+  padding: 7px 12px 7px 32px; color: var(--text);
+  font-family: var(--mono); font-size: 0.72rem; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input:focus {
+  border-color: rgba(73,224,255,0.4);
+  box-shadow: 0 0 12px rgba(73,224,255,0.1);
+}
+.search-input::placeholder { color: var(--muted); }
+.bar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1); color: var(--muted);
+  cursor: pointer; transition: all 0.2s; user-select: none;
+}
+.pill[data-active="true"] {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(73,224,255,0.08);
+}
+.pill:hover { border-color: rgba(73,224,255,0.35); color: var(--text); }
+
+/* ── LIBRARY ── */
+.library {
+  position: relative; z-index: 1;
+  padding: 44px 40px 20px;
+  max-width: 1680px; margin: 0 auto;
+}
+
+/* ── SHELF SECTION ── */
+.shelf-section {
+  margin-bottom: 64px;
+  animation: shelfIn 0.6s ease both;
+}
+@keyframes shelfIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.shelf-section:nth-child(1) { animation-delay: 0ms; }
+.shelf-section:nth-child(2) { animation-delay: 80ms; }
+.shelf-section:nth-child(3) { animation-delay: 160ms; }
+.shelf-section:nth-child(4) { animation-delay: 240ms; }
+
+.shelf-header {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 18px; padding: 0 6px;
+}
+.shelf-label-year {
+  font-family: var(--mono); font-size: 1rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--shelf-color, var(--accent));
+}
+.shelf-label-name {
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted);
+}
+.shelf-header-count {
+  margin-left: auto; font-family: var(--mono); font-size: 0.6rem;
+  color: var(--muted); letter-spacing: 2px;
+}
+/* LED status dot */
+.shelf-led {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--shelf-color, var(--accent));
+  box-shadow: 0 0 6px var(--shelf-color, var(--accent));
+  animation: ledBlink 3s infinite;
+  flex-shrink: 0;
+}
+@keyframes ledBlink {
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.3; }
+}
+
+/* Shelf row (the part books stand on) */
+.shelf-row {
+  position: relative;
+  background: linear-gradient(180deg,
+    rgba(10,18,28,0.55) 0%,
+    rgba(6,12,20,0.85) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.04);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  padding: 32px 28px 0 28px;
+  display: flex; gap: 10px;
+  flex-wrap: wrap;
+  overflow: visible;
+  perspective: 600px;
+}
+/* Shelf plank */
+.shelf-plank {
+  height: 18px; border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #0c1820 0%, #07111a 100%);
+  border-top: 2px solid var(--shelf-color, var(--accent));
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.7),
+    0 -1px 0 rgba(255,255,255,0.03),
+    inset 0 0 0 0;
+  position: relative; overflow: hidden;
+}
+.shelf-plank::before {
+  content: '';
+  position: absolute; left: 30px; right: 30px; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--shelf-color, var(--accent)), transparent);
+  opacity: 0.12;
+}
+/* PCB via dots on plank */
+.shelf-plank::after {
+  content: '';
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--shelf-color, rgba(73,224,255,0.5));
+  box-shadow: -14px 0 0 0 var(--shelf-color, rgba(73,224,255,0.3)),
+              -28px 0 0 0 var(--shelf-color, rgba(73,224,255,0.2));
+  opacity: 0.5;
+}
+
+/* ── BOOK ── */
+.book {
+  position: relative;
+  width: 52px;
+  height: var(--h, 180px);
+  flex-shrink: 0;
+  cursor: pointer;
+  transform-origin: bottom center;
+  transition:
+    transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.38s ease,
+    filter 0.25s ease;
+  border-radius: 2px 6px 6px 2px;
+  border-left: 5px solid var(--bk-accent, #49e0ff);
+  background: linear-gradient(to right, #0b1825, #07101c);
+  box-shadow: 2px 3px 12px rgba(0,0,0,0.7);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden;
+  animation: bookRise 0.5s ease both;
+}
+@keyframes bookRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.book:hover {
+  transform: translateY(-28px) rotateY(-14deg) scale(1.04);
+  box-shadow: 4px 4px 28px rgba(0,0,0,0.9), 0 0 22px var(--bk-shadow, rgba(73,224,255,0.3));
+  filter: brightness(1.18);
+  z-index: 10;
+}
+/* top accent bar */
+.book::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; background: var(--bk-accent, #49e0ff); opacity: 0.75;
+}
+/* bottom accent bar */
+.book::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--bk-accent, #49e0ff); opacity: 0.25;
+}
+/* shine strip */
+.book-shine {
+  position: absolute; top: 0; left: 0; width: 28%; height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0.055), transparent);
+  pointer-events: none;
+}
+/* type icon */
+.book-icon {
+  position: absolute; top: 13px;
+  font-size: 11px; color: var(--bk-accent, #49e0ff); opacity: 0.65;
+  font-family: var(--mono); letter-spacing: 0;
+}
+/* vertical title */
+.book-title {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+  color: rgba(207, 232, 255, 0.88); letter-spacing: 0.4px;
+  line-height: 1.3; padding: 6px 3px; text-align: center;
+  max-height: 115px; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical;
+}
+/* course code */
+.book-code {
+  position: absolute; bottom: 11px;
+  font-family: var(--mono); font-size: 7.5px;
+  color: var(--bk-accent, #49e0ff); letter-spacing: 0.8px; opacity: 0.75;
+}
+
+/* ── BOOK TOOLTIP ── */
+.book-tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%; transform: translateX(-50%) translateY(8px);
+  width: 210px;
+  background: rgba(6,12,22,0.98);
+  border: 1px solid var(--bk-accent, #49e0ff);
+  border-radius: 10px; padding: 13px 15px;
+  pointer-events: none; opacity: 0; z-index: 200;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9), 0 0 20px var(--bk-shadow, rgba(73,224,255,0.2));
+}
+.book:hover .book-tip {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+.tip-code {
+  font-family: var(--mono); font-size: 0.58rem;
+  color: var(--bk-accent, #49e0ff); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.tip-title {
+  font-size: 0.82rem; font-weight: 600; color: #fff;
+  margin-bottom: 6px; line-height: 1.35;
+}
+.tip-desc {
+  font-size: 0.68rem; color: var(--muted); line-height: 1.55;
+}
+.tip-arrow {
+  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 10px; height: 10px; background: rgba(6,12,22,0.98);
+  border-right: 1px solid var(--bk-accent, #49e0ff);
+  border-bottom: 1px solid var(--bk-accent, #49e0ff);
+}
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(5,5,8,0.82); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  width: min(580px, 93vw); max-height: 88vh;
+  background: #070e1a;
+  border: 1px solid rgba(73,224,255,0.18);
+  border-radius: 16px; overflow: hidden;
+  display: flex; flex-direction: column;
+  transform: scale(0.94) translateY(16px);
+  transition: transform 0.38s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.95), 0 0 40px rgba(73,224,255,0.06);
+}
+.overlay.open .modal { transform: scale(1) translateY(0); }
+
+.modal-head {
+  padding: 26px 28px 20px; flex-shrink: 0;
+  background: #070e1a;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+}
+.modal-close-btn {
+  position: absolute; top: 16px; right: 16px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1); background: transparent;
+  color: var(--muted); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.modal-close-btn:hover { border-color: var(--power); color: var(--power); }
+
+.m-code {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 7px;
+}
+.m-title {
+  font-family: var(--mono); font-size: 1.35rem; font-weight: 700;
+  color: #fff; line-height: 1.2; margin-bottom: 12px;
+}
+.m-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.m-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 2px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  border: 1px solid;
+}
+
+.modal-body { padding: 22px 28px; overflow-y: auto; flex: 1; }
+
+.m-desc {
+  font-size: 0.88rem; color: var(--text); line-height: 1.75;
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.m-section {
+  font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.topics-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+  margin-bottom: 24px;
+}
+.topic {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+  padding: 8px 12px; background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05); border-radius: 6px;
+  display: flex; align-items: center; gap: 8px; line-height: 1.3;
+}
+.topic::before {
+  content: '▸'; font-size: 9px; flex-shrink: 0;
+}
+
+.modal-foot {
+  padding: 16px 28px; border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; gap: 10px; flex-shrink: 0; background: #070e1a;
+}
+.btn {
+  flex: 1; padding: 10px 18px; border-radius: 8px;
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 2px;
+  text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+  border: 1px solid;
+}
+.btn-ghost {
+  background: transparent; border-color: rgba(255,255,255,0.1); color: var(--muted);
+}
+.btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+.btn-solid {
+  font-weight: 700; border-color: transparent; color: #040810;
+}
+.btn-solid:hover { filter: brightness(1.12); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 100px 20px;
+  display: none;
+}
+.empty-state.show { display: block; }
+.empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
+.empty-msg {
+  font-family: var(--mono); font-size: 0.75rem; color: var(--muted); letter-spacing: 3px;
+}
+
+/* ── FOOTER ── */
+.footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 80;
+  height: 40px; padding: 0 28px;
+  background: rgba(5,5,8,0.92); border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer span {
+  font-family: var(--mono); font-size: 0.58rem; color: var(--muted); letter-spacing: 2px;
+}
+
+/* ── UTILS ── */
+.hidden { display: none !important; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(73,224,255,0.18); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="scanner"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <div class="nav-brand-ring">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/>
+      </svg>
+    </div>
+    <span class="nav-brand-name">Digital Guardian</span>
+  </a>
+  <div class="nav-center">
+    <span class="nav-center-title">Digital Library</span>
+    <span class="nav-center-sub">BSIT Curriculum</span>
+  </div>
+  <div class="nav-pills">
+    <div class="nav-pill"><span id="visCount">0</span>Subjects</div>
+    <div class="nav-pill"><span>4</span>Years</div>
+  </div>
+</nav>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input class="search-input" type="text" id="searchInput" placeholder="Search subjects...">
+  </div>
+  <div class="bar-sep"></div>
+  <div class="pills" id="pills">
+    <div class="pill" data-f="all"          data-active="true">All</div>
+    <div class="pill" data-f="Programming"  data-active="false">Programming</div>
+    <div class="pill" data-f="Networks"     data-active="false">Networks</div>
+    <div class="pill" data-f="Security"     data-active="false">Security</div>
+    <div class="pill" data-f="Database"     data-active="false">Database</div>
+    <div class="pill" data-f="Systems"      data-active="false">Systems</div>
+    <div class="pill" data-f="Math"         data-active="false">Math</div>
+    <div class="pill" data-f="AI"           data-active="false">AI / Emerging</div>
+    <div class="pill" data-f="Web"          data-active="false">Web / Mobile</div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<main class="library" id="library"></main>
+<div class="empty-state" id="emptyState">
+  <div class="empty-icon">📚</div>
+  <div class="empty-msg">No courses match your filter</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close-btn" id="mClose">✕</button>
+      <div class="m-code" id="mCode"></div>
+      <div class="m-title" id="mTitle"></div>
+      <div class="m-tags" id="mTags"></div>
+    </div>
+    <div class="modal-body">
+      <p class="m-desc" id="mDesc"></p>
+      <div class="m-section">Key Topics Covered</div>
+      <div class="topics-grid" id="mTopics"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="mCloseFoot">Close</button>
+      <button class="btn btn-solid" id="mOpen" style="background:var(--m-accent,#49e0ff)">Open Course →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span>Digital Guardian — BSIT Library</span>
+  <span id="footStat">Loading...</span>
+</footer>
+
+<script>
+// ── Book data ──
+const C = {
+  Core:'#49e0ff', Programming:'#4499ff', Math:'#b44aff',
+  Database:'#ff9944', Web:'#88ee44', Networks:'#44ff88',
+  Systems:'#ff4488', Engineering:'#7788ff', Security:'#ff4444',
+  Design:'#ff88cc', AI:'#aa44ff', Mobile:'#ffaa44',
+  Cloud:'#44aaff', Management:'#44ffcc', Emerging:'#88ffaa',
+  Capstone:'#ffd700', Core2:'#49e0ff'
+};
+const ICONS = {
+  Core:'⬡', Programming:'{}', Math:'Σ', Database:'◉', Web:'⊞',
+  Networks:'◈', Systems:'⊙', Engineering:'⊕', Security:'⊗',
+  Design:'◎', AI:'⊛', Mobile:'▣', Cloud:'○', Management:'▦',
+  Emerging:'⊝', Capstone:'★'
+};
+const H = { 3:175, 4:198, 5:215, 6:236 };
+
+const SHELVES = [
+  {
+    id:'y1', year:'1st Year', name:'Core Foundations', color:'#49e0ff',
+    books:[
+      { code:'CC 111', title:'Introduction to Computing',      type:'Core',        units:3, desc:'Fundamentals of computing hardware, software, number systems, and the history of digital technology. Establishes the essential vocabulary and concepts of the IT field.', topics:['Hardware Components','Software Classification','Number Systems','Binary Arithmetic','History of Computing','Digital Logic Basics'] },
+      { code:'GE 101', title:'Discrete Mathematics',           type:'Math',        units:3, desc:'Mathematical foundations for computing including propositional logic, set theory, relations, and graph theory essential for algorithm design.', topics:['Propositional Logic','Set Theory','Relations & Functions','Graph Theory','Combinatorics','Mathematical Proof'] },
+      { code:'CC 112', title:'Programming Logic & Design',     type:'Programming', units:3, desc:'Foundations of problem solving through structured algorithm design, flowcharting, and pseudocode, forming the basis for all programming courses.', topics:['Algorithm Design','Flowcharting','Pseudocode','Control Structures','Modular Design','Problem Analysis'] },
+      { code:'CC 113', title:'Computer Programming 1',         type:'Programming', units:3, desc:'Introduction to structured programming using C language, covering syntax, control flow, functions, arrays, and file input/output operations.', topics:['C Syntax & Operators','Control Flow','Functions','Arrays & Strings','Pointers','File I/O'] },
+      { code:'GE 102', title:'Information Management',         type:'Management',  units:3, desc:'Principles of managing information assets within organizations, covering data quality, knowledge management, and information systems ethics.', topics:['Information Systems','Data vs Information','Knowledge Management','Information Architecture','Data Quality','IT Ethics'] },
+    ]
+  },
+  {
+    id:'y2', year:'2nd Year', name:'Building Blocks', color:'#44ff88',
+    books:[
+      { code:'CC 211', title:'Data Structures & Algorithms',   type:'Core',        units:3, desc:'Fundamental data organization and algorithm design techniques essential for writing efficient software. Covers complexity analysis and common data structures.', topics:['Arrays & Linked Lists','Stacks & Queues','Trees & Graphs','Sorting Algorithms','Searching Algorithms','Big-O Complexity'] },
+      { code:'CC 212', title:'Object-Oriented Programming',    type:'Programming', units:3, desc:'Object-oriented design using Java, covering encapsulation, inheritance, and polymorphism with practical application of common design patterns.', topics:['Classes & Objects','Encapsulation','Inheritance','Polymorphism','Interfaces & Abstraction','Design Patterns'] },
+      { code:'CC 213', title:'Database Management Systems',    type:'Database',    units:3, desc:'Relational database design, normalization theory, SQL programming, transaction management, and modern database security practices.', topics:['ER Modeling','Normalization','SQL Queries','Stored Procedures','Transaction ACID','Database Security'] },
+      { code:'CC 214', title:'Web Development',                type:'Web',         units:3, desc:'Modern web development using HTML5, CSS3, JavaScript, and responsive frameworks. Introduces REST APIs and front-end tooling.', topics:['HTML5 Semantics','CSS3 & Flexbox','JavaScript ES6+','DOM Manipulation','Responsive Design','REST API Basics'] },
+      { code:'NET 211', title:'Computer Networks',             type:'Networks',    units:3, desc:'Network architectures, OSI and TCP/IP models, IP addressing, routing, switching, and fundamental network services and configuration.', topics:['OSI Model Layers','TCP/IP Suite','IP Addressing & CIDR','Routing & Switching','DNS & DHCP','Network Troubleshooting'] },
+      { code:'CC 215', title:'Operating Systems',              type:'Systems',     units:3, desc:'Core OS concepts covering process management, CPU scheduling, memory management, virtual memory, and file system design.', topics:['Process Management','CPU Scheduling','Memory Management','Virtual Memory','File Systems','OS Security'] },
+    ]
+  },
+  {
+    id:'y3', year:'3rd Year', name:'Advanced Systems', color:'#b44aff',
+    books:[
+      { code:'CC 311', title:'Systems Analysis & Design',      type:'Engineering', units:3, desc:'Methodologies for analyzing business requirements and designing effective information systems using SDLC, UML, and modern Agile approaches.', topics:['SDLC Phases','Requirements Elicitation','UML Modeling','Prototyping Techniques','System Documentation','Agile Methods'] },
+      { code:'CC 312', title:'Software Engineering',           type:'Engineering', units:3, desc:'Software development life cycle, quality assurance, testing strategies, version control, and DevOps practices for professional software teams.', topics:['Waterfall & Agile','Software Testing','Code Review','Git Version Control','DevOps Basics','Quality Metrics'] },
+      { code:'SEC 311', title:'Information Security',          type:'Security',    units:3, desc:'Principles of cybersecurity, cryptographic techniques, access control models, risk management, and incident response frameworks.', topics:['CIA Triad','Cryptography Basics','Access Control Models','Risk Assessment','Security Policies','Incident Response'] },
+      { code:'NET 312', title:'Network Security',              type:'Security',    units:3, desc:'Advanced network security covering firewall configuration, IDS/IPS systems, VPN technologies, and penetration testing methodologies.', topics:['Firewalls & ACLs','IDS/IPS Systems','VPN Technologies','PKI & Certificates','Network Forensics','Ethical Hacking Intro'] },
+      { code:'CC 313', title:'Human-Computer Interaction',     type:'Design',      units:3, desc:'Principles of UX design, usability engineering, accessibility standards, and user-centered design processes for building intuitive software.', topics:['UX Design Principles','Usability Testing','Wireframing & Mockups','Accessibility (WCAG)','Cognitive Psychology','Prototyping Tools'] },
+      { code:'CC 314', title:'Applications Development',       type:'Programming', units:4, desc:'Enterprise application development using modern frameworks, MVC architecture, authentication, database integration, and cloud deployment.', topics:['MVC Architecture','Backend Frameworks','REST API Development','Authentication & JWT','Database ORM','CI/CD Deployment'] },
+    ]
+  },
+  {
+    id:'y4', year:'4th Year', name:'Specialization', color:'#ffd700',
+    books:[
+      { code:'CC 411', title:'Artificial Intelligence',        type:'AI',          units:3, desc:'Foundations of AI including supervised and unsupervised learning, neural networks, natural language processing, and ethical AI considerations.', topics:['Machine Learning','Neural Networks','NLP Fundamentals','Computer Vision Intro','Expert Systems','Ethics in AI'] },
+      { code:'CC 412', title:'Mobile App Development',         type:'Mobile',      units:3, desc:'Development of cross-platform mobile applications, covering UI components, device APIs, state management, and app store deployment processes.', topics:['React Native / Flutter','Mobile UI Patterns','Device APIs','State Management','Offline Storage','App Store Deployment'] },
+      { code:'CC 413', title:'Cloud Computing',                type:'Cloud',       units:3, desc:'Cloud architecture principles, IaaS/PaaS/SaaS service models, containerization, microservices, and major cloud platform deployment strategies.', topics:['IaaS / PaaS / SaaS','AWS & Azure Basics','Docker & Kubernetes','Microservices','Cloud Security','Cost Optimization'] },
+      { code:'CC 414', title:'IT Project Management',          type:'Management',  units:3, desc:'Project planning, risk management, stakeholder communication, and Agile/Scrum methodologies for leading successful IT projects.', topics:['Project Planning','Agile & Scrum','Risk Management','Stakeholder Communication','Budgeting Basics','PMI Standards'] },
+      { code:'CC 415', title:'Emerging Technologies',          type:'Emerging',    units:3, desc:'Survey of cutting-edge technologies reshaping computing: Internet of Things, blockchain, AR/VR, quantum computing, and edge intelligence.', topics:['Internet of Things','Blockchain Fundamentals','Augmented & VR','Quantum Computing Intro','Edge Computing','Digital Twins'] },
+      { code:'CC 416', title:'Capstone Project',               type:'Capstone',    units:6, desc:'Culminating research and development project integrating knowledge from all BSIT coursework into a complete, deployable IT system with formal thesis defense.', topics:['Research Methodology','System Proposal','Development & Testing','Quality Assurance','Technical Documentation','Thesis Defense'] },
+    ]
+  },
+];
+
+// ── Helpers ──
+function hexRgb(hex) {
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)].join(',');
+}
+
+// ── Build shelves ──
+const library   = document.getElementById('library');
+const visCountEl= document.getElementById('visCount');
+const footStat  = document.getElementById('footStat');
+let totalBooks  = 0;
+let allBooks    = [];
+
+SHELVES.forEach(shelf => {
+  totalBooks += shelf.books.length;
+  const sec = document.createElement('section');
+  sec.className = 'shelf-section';
+  sec.dataset.sid = shelf.id;
+  sec.style.setProperty('--shelf-color', shelf.color);
+
+  sec.innerHTML = `
+    <div class="shelf-header">
+      <div class="shelf-led" style="--shelf-color:${shelf.color}"></div>
+      <span class="shelf-label-year" style="color:${shelf.color}">${shelf.year}</span>
+      <span class="shelf-label-name">${shelf.name}</span>
+      <span class="shelf-header-count">${shelf.books.length} courses</span>
+    </div>
+    <div class="shelf-row" id="row-${shelf.id}"></div>
+    <div class="shelf-plank" style="--shelf-color:${shelf.color}"></div>
+  `;
+  library.appendChild(sec);
+
+  const row = sec.querySelector(`#row-${shelf.id}`);
+  shelf.books.forEach((b, i) => {
+    const accent = C[b.type] || '#49e0ff';
+    const shadow = `rgba(${hexRgb(accent)},0.32)`;
+    const h      = H[b.units] || 178;
+    const icon   = ICONS[b.type] || '◆';
+
+    const el = document.createElement('div');
+    el.className = 'book';
+    el.dataset.type  = b.type;
+    el.dataset.search= (b.title + ' ' + b.code).toLowerCase();
+    el.style.cssText = `--bk-accent:${accent};--bk-shadow:${shadow};--h:${h}px;animation-delay:${i*45}ms`;
+    el.innerHTML = `
+      <div class="book-shine"></div>
+      <span class="book-icon">${icon}</span>
+      <span class="book-title">${b.title}</span>
+      <span class="book-code">${b.code}</span>
+      <div class="book-tip">
+        <div class="tip-code">${b.code} &bull; ${b.units} Units &bull; ${b.type}</div>
+        <div class="tip-title">${b.title}</div>
+        <div class="tip-desc">${b.desc.slice(0,110)}${b.desc.length>110?'…':''}</div>
+        <div class="tip-arrow"></div>
+      </div>
+    `;
+    el.addEventListener('click', () => openModal(b, accent));
+    row.appendChild(el);
+    allBooks.push(el);
+  });
+});
+
+visCountEl.textContent = totalBooks;
+footStat.textContent   = `${totalBooks} courses across 4 years`;
+
+// ── Modal ──
+const overlay = document.getElementById('overlay');
+const mModal  = overlay.querySelector('.modal');
+
+function openModal(b, accent) {
+  const rgb = hexRgb(accent);
+  mModal.style.setProperty('--m-accent', accent);
+  mModal.style.borderColor = `rgba(${rgb},0.35)`;
+  document.getElementById('mCode').style.color  = accent;
+  document.getElementById('mCode').textContent  = b.code;
+  document.getElementById('mTitle').textContent = b.title;
+  document.getElementById('mDesc').textContent  = b.desc;
+  document.getElementById('mTags').innerHTML    = `
+    <span class="m-tag" style="color:${accent};border-color:rgba(${rgb},0.35);background:rgba(${rgb},0.08)">${b.type}</span>
+    <span class="m-tag" style="color:var(--muted);border-color:rgba(255,255,255,0.1)">${b.units} Units</span>
+    <span class="m-tag" style="color:var(--muted);border-color:rgba(255,255,255,0.1)">BSIT Core</span>
+  `;
+  document.getElementById('mTopics').innerHTML  = b.topics.map(t =>
+    `<div class="topic" style="--t:${accent}">${t}</div>`
+  ).join('');
+  // topic arrow color
+  document.querySelectorAll('.topic::before').forEach(() => {});
+  document.querySelectorAll('.topic').forEach(t => t.style.setProperty('color', 'inherit'));
+  const openBtn = document.getElementById('mOpen');
+  openBtn.style.background = accent;
+  overlay.classList.add('open');
+}
+
+function closeModal() { overlay.classList.remove('open'); }
+document.getElementById('mClose').addEventListener('click', closeModal);
+document.getElementById('mCloseFoot').addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Filters ──
+const searchInput = document.getElementById('searchInput');
+const pills = document.querySelectorAll('.pill');
+let activeF = 'all';
+
+function applyFilters() {
+  const q = searchInput.value.trim().toLowerCase();
+  let vis = 0;
+  allBooks.forEach(el => {
+    const typeOk   = activeF === 'all'
+      || el.dataset.type === activeF
+      || (activeF === 'AI' && (el.dataset.type === 'AI' || el.dataset.type === 'Emerging'))
+      || (activeF === 'Web' && (el.dataset.type === 'Web' || el.dataset.type === 'Mobile'));
+    const searchOk = !q || el.dataset.search.includes(q);
+    const show = typeOk && searchOk;
+    el.classList.toggle('hidden', !show);
+    if (show) vis++;
+  });
+  // hide empty shelves
+  document.querySelectorAll('.shelf-section').forEach(sec => {
+    const hasVisible = [...sec.querySelectorAll('.book')].some(b => !b.classList.contains('hidden'));
+    sec.classList.toggle('hidden', !hasVisible);
+  });
+  visCountEl.textContent = vis;
+  footStat.textContent = vis === totalBooks
+    ? `${totalBooks} courses across 4 years`
+    : `${vis} of ${totalBooks} courses shown`;
+  document.getElementById('emptyState').classList.toggle('show', vis === 0);
+}
+
+searchInput.addEventListener('input', applyFilters);
+
+pills.forEach(p => p.addEventListener('click', () => {
+  pills.forEach(x => x.dataset.active = 'false');
+  p.dataset.active = 'true';
+  activeF = p.dataset.f;
+  applyFilters();
+}));
+
+// topic arrow color via CSS variable
+document.querySelectorAll('.topic').forEach(t => {
+  t.style.setProperty('--bk-accent', 'inherit');
+});
+</script>
+</body>
+</html>

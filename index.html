@@ -28,9 +28,6 @@
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   /* Circuit board SVG - full screen background */
@@ -43,25 +40,20 @@
     pointer-events: none;
   }
 
-  /* Center stage */
-  .stage {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-  }
-
-  /* Header - hidden until powered on */
+  /* Header - pinned to top, hidden until revealed */
   .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
     text-align: center;
-    margin-bottom: 60px;
+    padding: 36px 24px 28px;
     opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transform: translateY(-20px);
+    transition: opacity 1s ease, transform 1s ease;
     pointer-events: none;
+    background: linear-gradient(to bottom, rgba(5,5,8,0.9) 60%, transparent);
   }
 
   .header.revealed {
@@ -72,22 +64,58 @@
 
   .header h1 {
     font-family: var(--mono);
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: clamp(1.8rem, 4vw, 3rem);
     font-weight: 700;
     background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
-    letter-spacing: -1px;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 20px rgba(73,224,255,0.4));
+  }
+
+  .header .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .header .divider::before,
+  .header .divider::after {
+    content: '';
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--accent));
+    opacity: 0.4;
+  }
+
+  .header .divider::after {
+    background: linear-gradient(to left, transparent, var(--accent));
   }
 
   .header .subtitle {
     font-family: var(--mono);
-    font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+    font-size: clamp(0.65rem, 1.2vw, 0.8rem);
     color: var(--muted);
-    letter-spacing: 3px;
+    letter-spacing: 5px;
     text-transform: uppercase;
+  }
+
+  /* Power button — always centered */
+  .stage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
   }
 
   /* Power button */
@@ -95,7 +123,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
   }
 
   .power-btn {
@@ -180,15 +208,33 @@
 
   .power-label {
     font-family: var(--mono);
-    font-size: 0.7rem;
-    color: rgba(120, 80, 80, 0.7);
-    letter-spacing: 3px;
+    font-size: 0.65rem;
+    color: rgba(130, 70, 70, 0.6);
+    letter-spacing: 4px;
     text-transform: uppercase;
-    transition: color 0.5s ease;
+    transition: color 0.5s ease, opacity 0.5s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .power-label::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(180,50,50,0.5);
+    transition: background 0.5s ease, box-shadow 0.5s ease;
   }
 
   .power-label.active {
     color: var(--success);
+  }
+
+  .power-label.active::before {
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: blink 2s infinite;
   }
 
   /* Footer */
@@ -245,12 +291,13 @@
 
 <svg class="circuit-board" id="circuitBoard" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"></svg>
 
-<div class="stage">
-  <div class="header" id="header">
-    <h1>Digital Guardian</h1>
-    <div class="subtitle">The power is in your hands</div>
-  </div>
+<div class="header" id="header">
+  <h1>Digital Guardian</h1>
+  <div class="divider"><span></span></div>
+  <div class="subtitle">The power is in your hands</div>
+</div>
 
+<div class="stage">
   <div class="power-section">
     <button class="power-btn" id="powerBtn" aria-label="Power On">
       <svg class="power-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -278,88 +325,120 @@ const footer    = document.getElementById('footer');
 const label     = document.getElementById('powerLabel');
 const statusTxt = document.getElementById('statusText');
 const NS = 'http://www.w3.org/2000/svg';
-let isOn = false;
-let traceEls = [];
+let isOn = false, busy = false, traceEls = [], viaEls = [], compEls = [];
 
-// ── Maze-style PCB trace routes (right-angle only, radiating from 960,540) ──
-// Each string is one continuous trace path
+// IC chip outlines [x, y, w, h, label]
+const IC = [
+  [580,  40,  200, 130, 'MCU'],
+  [1140, 40,  200, 130, 'DDR4'],
+  [30,   330, 120, 200, 'PWR'],
+  [1770, 330, 120, 200, 'PHY'],
+  [30,   640, 120, 200, 'USB'],
+  [1770, 640, 120, 200, 'PCIe'],
+  [800,  920, 320, 130, 'SYS-BUS'],
+];
+
+// Via hole positions [cx, cy]
+const VIAS = [
+  [720,180],[1200,180],
+  [720,300],[840,300],[1080,300],[1200,300],
+  [720,420],[840,420],[1080,420],[1200,420],
+  [720,540],[1200,540],
+  [720,660],[840,660],[1080,660],[1200,660],
+  [840,780],[960,780],[1080,780],
+  [240,420],[360,420],[240,540],[360,540],[240,660],[360,660],
+  [1560,420],[1680,420],[1560,540],[1680,540],[1560,660],[1680,660],
+  [480,300],[1440,300],[480,840],[1440,840],
+];
+
+// PCB traces
 const TRACES = [
-  // Layer 1 – main arteries from center
-  'M960,540 L960,420 L840,420 L840,300 L720,300 L720,180 L600,180 L600,60',
-  'M960,540 L960,420 L1080,420 L1080,300 L1200,300 L1200,180 L1320,180 L1320,60',
-  'M960,540 L840,540 L840,660 L720,660 L720,780 L600,780 L600,900 L480,900',
-  'M960,540 L1080,540 L1080,660 L1200,660 L1200,780 L1320,780 L1320,900 L1440,900',
-  'M960,540 L960,660 L960,780 L840,780 L840,900 L960,900 L960,1020',
-  // Layer 2 – horizontal bus left
-  'M840,420 L720,420 L720,300',
-  'M720,420 L600,420 L600,300 L480,300 L480,180',
-  'M600,420 L480,420 L360,420 L360,300 L240,300 L240,180 L120,180',
-  'M360,420 L360,540 L240,540 L120,540',
-  'M240,540 L240,660 L120,660',
-  'M240,660 L240,780 L120,780',
-  // Layer 3 – horizontal bus right
-  'M1080,420 L1200,420 L1200,300',
-  'M1200,420 L1320,420 L1320,300 L1440,300 L1440,180',
-  'M1320,420 L1440,420 L1560,420 L1560,300 L1680,300 L1680,180 L1800,180',
-  'M1560,420 L1560,540 L1680,540 L1800,540',
-  'M1680,540 L1680,660 L1800,660',
-  'M1680,660 L1680,780 L1800,780',
-  // Layer 4 – lower horizontals
-  'M840,660 L720,660',
-  'M720,660 L600,660 L600,780',
-  'M480,300 L480,420 L360,420',
-  'M120,540 L120,420 L240,420 L240,300',
-  'M1440,420 L1440,540 L1560,540',
-  'M1800,540 L1800,420 L1680,420 L1680,300',
-  // Layer 5 – edge traces top
-  'M600,60 L480,60 L480,180',
-  'M1320,60 L1440,60 L1440,180',
-  'M480,180 L360,180 L360,60',
-  'M1440,180 L1560,180 L1560,60',
-  // Layer 6 – edge traces bottom
-  'M480,900 L360,900 L360,1020',
-  'M1440,900 L1560,900 L1560,1020',
-  'M960,1020 L840,1020 L720,1020',
-  'M960,1020 L1080,1020 L1200,1020',
+  'M960,540 L960,420 L840,420 L840,300 L720,300 L720,180',
+  'M960,540 L960,420 L1080,420 L1080,300 L1200,300 L1200,180',
+  'M960,540 L960,660 L960,780',
+  'M960,540 L720,540 L360,540 L240,540',
+  'M960,540 L1200,540 L1560,540 L1680,540',
+  'M720,180 L720,170',
+  'M680,170 L640,170 L640,180',
+  'M720,300 L720,420',
+  'M840,300 L840,420',
+  'M1200,180 L1200,170',
+  'M1240,170 L1280,170 L1280,180',
+  'M1200,300 L1200,420',
+  'M1080,300 L1080,420',
+  'M840,300 L1080,300',
+  'M240,540 L240,420 L150,420',
+  'M240,420 L240,330 L150,330',
+  'M360,420 L360,540',
+  'M240,540 L240,660 L150,660',
+  'M240,660 L240,740 L150,740',
+  'M360,540 L360,660',
+  'M1680,540 L1680,420 L1770,420',
+  'M1680,420 L1680,330 L1770,330',
+  'M1560,420 L1560,540',
+  'M1680,540 L1680,660 L1770,660',
+  'M1680,660 L1680,740 L1770,740',
+  'M1560,540 L1560,660',
+  'M720,420 L360,420',
+  'M1200,420 L1560,420',
+  'M720,660 L360,660',
+  'M1200,660 L1560,660',
+  'M720,540 L720,420',
+  'M1200,540 L1200,420',
+  'M720,540 L720,660',
+  'M1200,540 L1200,660',
+  'M960,780 L840,780 L840,920',
+  'M960,780 L1080,780 L1080,920',
+  'M840,660 L840,780',
+  'M1080,660 L1080,780',
+  'M360,420 L360,300 L480,300 L480,170',
+  'M1560,420 L1560,300 L1440,300 L1440,170',
+  'M360,660 L360,840 L480,840 L480,1020',
+  'M1560,660 L1560,840 L1440,840 L1440,1020',
 ];
 
-// Groups: each inner array runs in parallel, groups run in sequence
 const GROUPS = [
-  [0, 1, 2, 3, 4],
-  [5, 6, 11, 12, 17, 18],
-  [7, 8, 13, 14, 19, 20, 21, 22],
-  [9, 10, 15, 16, 23, 24, 25, 26],
-  [27, 28, 29, 30],
+  [0,1,2,3,4],
+  [5,6,7,8,9,10,11,12,13],
+  [14,15,16,17,18,19,20,21,22,23,24,25],
+  [26,27,28,29,30,31,32,33,34,35,36,37],
+  [38,39,40,41],
 ];
 
-const SPEED = 700; // ms per trace
+const SPEED = 600;
+
+function mk(tag, attrs, parent) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  if (parent) parent.appendChild(el);
+  return el;
+}
 
 function buildBoard() {
   board.innerHTML = '';
-  traceEls = [];
+  traceEls = []; viaEls = []; compEls = [];
+
+  IC.forEach(([x,y,w,h,lbl]) => {
+    const rect = mk('rect', {x,y,width:w,height:h,fill:'none',stroke:'none','stroke-width':1.5,rx:3}, board);
+    for (let i=1;i<=3;i++) { const px=x+(w/4)*i; mk('line',{x1:px,y1:y+h,x2:px,y2:y+h+8,stroke:'none','stroke-width':1.5},board); }
+    for (let i=1;i<=3;i++) { const px=x+(w/4)*i; mk('line',{x1:px,y1:y,x2:px,y2:y-8,stroke:'none','stroke-width':1.5},board); }
+    const txt = mk('text',{x:x+w/2,y:y+h/2+5,fill:'none','font-family':'Fira Code,monospace','font-size':13,'text-anchor':'middle','font-weight':'600'},board);
+    txt.textContent = lbl;
+    mk('path',{d:`M${x},${y+14} L${x+14},${y+14} L${x+14},${y}`,fill:'none',stroke:'none','stroke-width':1},board);
+    compEls.push({rect,txt});
+  });
+
+  VIAS.forEach(([cx,cy]) => {
+    const ring = mk('circle',{cx,cy,r:5,fill:'none',stroke:'none','stroke-width':1.5},board);
+    const dot  = mk('circle',{cx,cy,r:2,fill:'none'},board);
+    viaEls.push({ring,dot});
+  });
+
   TRACES.forEach(d => {
-    // dim always-visible base
-    const base = document.createElementNS(NS, 'path');
-    base.setAttribute('d', d);
-    base.setAttribute('stroke', '#0d1a25');
-    base.setAttribute('stroke-width', '1.5');
-    base.setAttribute('fill', 'none');
-    base.setAttribute('stroke-linecap', 'round');
-    base.setAttribute('stroke-linejoin', 'round');
-    board.appendChild(base);
-
-    // lit overlay, hidden
-    const lit = document.createElementNS(NS, 'path');
-    lit.setAttribute('d', d);
-    lit.setAttribute('stroke', '#49e0ff');
-    lit.setAttribute('stroke-width', '1.5');
-    lit.setAttribute('fill', 'none');
-    lit.setAttribute('stroke-linecap', 'round');
-    lit.setAttribute('stroke-linejoin', 'round');
-    lit.style.opacity = '0';
-    lit.style.filter = 'drop-shadow(0 0 5px rgba(73,224,255,0.9))';
-    board.appendChild(lit);
-
+    mk('path',{d,stroke:'none','stroke-width':1.5,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},board);
+    const lit = mk('path',{d,stroke:'#49e0ff','stroke-width':1.5,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'},board);
+    lit.style.opacity='0';
+    lit.style.filter='drop-shadow(0 0 4px rgba(73,224,255,.9))';
     traceEls.push(lit);
   });
 }
@@ -370,71 +449,62 @@ function animateTrace(lit, dur) {
     lit.style.strokeDasharray  = len;
     lit.style.strokeDashoffset = len;
     lit.style.opacity = '1';
-
-    // glowing dot head
-    const dot = document.createElementNS(NS, 'circle');
-    dot.setAttribute('r', '3.5');
-    dot.setAttribute('fill', '#ffffff');
-    dot.style.filter = 'drop-shadow(0 0 8px #49e0ff) drop-shadow(0 0 16px #49e0ff)';
-    board.appendChild(dot);
-
+    const dot = mk('circle',{r:3,fill:'#fff'},board);
+    dot.style.filter='drop-shadow(0 0 6px #49e0ff) drop-shadow(0 0 14px #49e0ff)';
     const t0 = performance.now();
     (function frame(t) {
-      const k  = Math.min(1, (t - t0) / dur);
-      const pt = lit.getPointAtLength(k * len);
-      dot.setAttribute('cx', pt.x);
-      dot.setAttribute('cy', pt.y);
-      lit.style.strokeDashoffset = len * (1 - k);
-      if (k < 1) requestAnimationFrame(frame);
-      else {
-        dot.remove();
-        lit.style.strokeDasharray  = '';
-        lit.style.strokeDashoffset = '';
-        res();
-      }
+      const k  = Math.min(1,(t-t0)/dur);
+      const pt = lit.getPointAtLength(k*len);
+      dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
+      lit.style.strokeDashoffset = len*(1-k);
+      if (k<1) requestAnimationFrame(frame);
+      else { dot.remove(); lit.style.strokeDasharray=lit.style.strokeDashoffset=''; res(); }
     })(t0);
   });
 }
 
 async function powerOn() {
-  for (const group of GROUPS) {
-    await Promise.all(group.map(i => animateTrace(traceEls[i], SPEED)));
+  for (const grp of GROUPS)
+    await Promise.all(grp.map(i => animateTrace(traceEls[i],SPEED)));
+  for (const {ring,dot} of viaEls) {
+    ring.setAttribute('stroke','#49e0ff');
+    ring.style.filter='drop-shadow(0 0 5px rgba(73,224,255,.8))';
+    dot.setAttribute('fill','#49e0ff');
+    await new Promise(r=>setTimeout(r,18));
   }
-  // Reveal header after circuit completes
+  for (const {rect,txt} of compEls) {
+    rect.setAttribute('stroke','#49e0ff');
+    rect.style.filter='drop-shadow(0 0 8px rgba(73,224,255,.6))';
+    txt.setAttribute('fill','#7ae8ff');
+    board.querySelectorAll('line').forEach(l=>l.setAttribute('stroke','#49e0ff'));
+    await new Promise(r=>setTimeout(r,60));
+  }
   header.classList.add('revealed');
   footer.classList.add('active');
-  statusTxt.textContent = 'System Online';
+  statusTxt.textContent='System Online';
   label.classList.add('active');
-  label.textContent = 'Power On';
+  busy=false;
+  setTimeout(() => { window.location.href = 'contents.html'; }, 800);
 }
 
 function powerOff() {
-  traceEls.forEach(el => {
-    el.style.opacity = '0';
-    el.style.strokeDasharray  = '';
-    el.style.strokeDashoffset = '';
-  });
-  // Remove all lingering dots
-  board.querySelectorAll('circle').forEach(c => c.remove());
+  traceEls.forEach(el=>{ el.style.opacity='0'; el.style.strokeDasharray=el.style.strokeDashoffset=''; });
+  viaEls.forEach(({ring,dot})=>{ ring.setAttribute('stroke','none'); ring.setAttribute('fill','none'); ring.style.filter=''; dot.setAttribute('fill','none'); });
+  compEls.forEach(({rect,txt})=>{ rect.setAttribute('stroke','none'); rect.style.filter=''; txt.setAttribute('fill','none'); });
+  board.querySelectorAll('line').forEach(l=>l.setAttribute('stroke','none'));
   header.classList.remove('revealed');
   footer.classList.remove('active');
-  statusTxt.textContent = 'Standby';
+  statusTxt.textContent='Standby';
   label.classList.remove('active');
-  label.textContent = 'Power On';
+  label.textContent='Power On';
 }
 
 buildBoard();
 
 powerBtn.addEventListener('click', async () => {
-  if (isOn) {
-    isOn = false;
-    powerBtn.classList.remove('active');
-    powerOff();
-  } else {
-    isOn = true;
-    powerBtn.classList.add('active');
-    await powerOn();
-  }
+  if (busy) return;
+  if (isOn) { isOn=false; powerBtn.classList.remove('active'); powerOff(); }
+  else { isOn=true; busy=true; powerBtn.classList.add('active'); await powerOn(); }
 });
 </script>
 </body>
