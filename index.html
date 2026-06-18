@@ -285,6 +285,21 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
   }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 640px) {
+    .header { padding: 24px 16px 20px; }
+    .header h1 { font-size: clamp(1.4rem, 7vw, 2rem); letter-spacing: 1px; }
+    .header .subtitle { font-size: 0.6rem; letter-spacing: 3px; }
+    .power-btn { width: 88px; height: 88px; }
+    .power-icon { width: 36px; height: 36px; }
+    .footer { padding: 8px 16px; font-size: 0.55rem; }
+  }
+  @media (max-width: 380px) {
+    .power-btn { width: 76px; height: 76px; }
+    .power-icon { width: 30px; height: 30px; }
+    .header h1 { font-size: 1.3rem; }
+  }
 </style>
 </head>
 <body>
