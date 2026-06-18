@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 111 — Introduction to Computing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #050508;
+  --surface: #080e18;
+  --text:    #cfe8ff;
+  --muted:   #7a93a8;
+  --accent:  #49e0ff;
+  --accent2: #b44aff;
+  --success: #44ff88;
+  --warn:    #ffd700;
+  --mono:    'Fira Code', monospace;
+  --sans:    'Inter', sans-serif;
+  --card-bg: #070d18;
+}
+html { overflow-x: hidden; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 80px;
+}
+
+/* ── Background ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(73,224,255,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(180,74,255,0.06) 0%, transparent 50%);
+}
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(73,224,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(73,224,255,0.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 28px; height: 56px;
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 12px;
+  background: rgba(5,5,8,0.95);
+  border-bottom: 1px solid rgba(73,224,255,0.1);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+.nav-back {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; color: var(--muted);
+  font-family: var(--mono); font-size: 0.65rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--accent); }
+.nav-back svg { transition: transform 0.2s; }
+.nav-back:hover svg { transform: translateX(-3px); }
+.nav-code {
+  font-family: var(--mono); font-size: 0.72rem;
+  color: var(--accent); letter-spacing: 3px;
+  text-transform: uppercase; text-align: center;
+  white-space: nowrap;
+}
+.nav-progress-wrap {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+}
+.nav-prog-text {
+  font-family: var(--mono); font-size: 0.58rem;
+  color: var(--muted); letter-spacing: 2px; white-space: nowrap;
+}
+.nav-prog-bar {
+  width: 80px; height: 3px; background: rgba(73,224,255,0.12);
+  border-radius: 2px; overflow: hidden;
+}
+.nav-prog-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 2px; transition: width 0.6s ease;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; z-index: 1; overflow: hidden;
+  padding: 52px 40px 44px;
+  border-bottom: 1px solid rgba(73,224,255,0.08);
+}
+.hero-bg-circuit {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  opacity: 0.15;
+}
+.hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent);
+  padding: 4px 12px; border: 1px solid rgba(73,224,255,0.25);
+  border-radius: 20px; background: rgba(73,224,255,0.06);
+  margin-bottom: 18px;
+}
+.hero-badge-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero-title {
+  font-family: var(--mono); font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-weight: 700; color: #fff; line-height: 1.15;
+  margin-bottom: 16px; letter-spacing: -0.5px;
+}
+.hero-title span { color: var(--accent); }
+
+.hero-desc {
+  font-size: 1rem; color: var(--muted);
+  line-height: 1.75; max-width: 640px; margin-bottom: 28px;
+}
+
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.meta-chip {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 2px;
+  text-transform: uppercase; padding: 5px 12px;
+  border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);
+  color: var(--muted); background: rgba(255,255,255,0.03);
+  display: flex; align-items: center; gap: 6px;
+}
+.meta-chip b { color: var(--text); }
+
+/* ── PROGRESS STRIP ── */
+.progress-strip {
+  position: relative; z-index: 1;
+  padding: 20px 40px;
+  background: rgba(7,13,24,0.8);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  flex-wrap: wrap;
+}
+.progress-label {
+  font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--muted);
+}
+.progress-nodes {
+  display: flex; align-items: center; gap: 0; flex: 1;
+  max-width: 500px;
+}
+.p-node {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  flex: 1; cursor: pointer;
+}
+.p-node-circle {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid rgba(73,224,255,0.25);
+  background: rgba(5,5,8,0.9);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 0.55rem; color: var(--muted);
+  transition: all 0.3s; position: relative; z-index: 1;
+}
+.p-node.done .p-node-circle {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 10px rgba(73,224,255,0.4);
+  background: rgba(73,224,255,0.08);
+}
+.p-node-label {
+  font-family: var(--mono); font-size: 0.45rem;
+  color: var(--muted); letter-spacing: 1px;
+  text-align: center; line-height: 1.2;
+  max-width: 60px;
+  display: none;
+}
+.p-line {
+  flex: 1; height: 1px;
+  background: rgba(73,224,255,0.15);
+  position: relative; top: -11px; margin: 0 -1px;
+}
+.p-line.done { background: var(--accent); box-shadow: 0 0 6px rgba(73,224,255,0.5); }
+.progress-count {
+  font-family: var(--mono); font-size: 0.62rem;
+  color: var(--accent); letter-spacing: 2px; white-space: nowrap;
+}
+
+/* ── TOPICS GRID ── */
+.topics-section {
+  position: relative; z-index: 1;
+  padding: 40px 40px 20px;
+  max-width: 1400px; margin: 0 auto;
+}
+.section-header {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
+}
+.section-title {
+  font-family: var(--mono); font-size: 0.65rem;
+  letter-spacing: 4px; text-transform: uppercase; color: var(--muted);
+}
+.section-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(to right, rgba(73,224,255,0.2), transparent);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
+  gap: 20px;
+}
+
+/* ── TOPIC CARD ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid rgba(73,224,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  animation: cardIn 0.5s ease both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card:nth-child(1) { animation-delay: 0ms; }
+.card:nth-child(2) { animation-delay: 60ms; }
+.card:nth-child(3) { animation-delay: 120ms; }
+.card:nth-child(4) { animation-delay: 180ms; }
+.card:nth-child(5) { animation-delay: 240ms; }
+.card:nth-child(6) { animation-delay: 300ms; }
+
+.card:hover {
+  border-color: rgba(73,224,255,0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(73,224,255,0.06);
+}
+.card.completed { border-color: rgba(68,255,136,0.25); }
+.card.completed:hover { border-color: rgba(68,255,136,0.45); }
+
+/* Card top bar */
+.card-topbar {
+  padding: 14px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  background: rgba(73,224,255,0.03);
+}
+.card-num {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px;
+  color: var(--accent); background: rgba(73,224,255,0.1);
+  padding: 2px 8px; border-radius: 4px;
+}
+.card-tag {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  padding: 2px 8px; border: 1px solid rgba(255,255,255,0.07); border-radius: 4px;
+}
+.card-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid rgba(73,224,255,0.25);
+  background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+  color: transparent; font-size: 10px;
+}
+.card-check:hover { border-color: var(--success); }
+.card.completed .card-check {
+  border-color: var(--success); background: rgba(68,255,136,0.15);
+  color: var(--success);
+}
+
+/* Card body */
+.card-body { padding: 18px 18px 14px; }
+.card-icon { font-size: 1.5rem; margin-bottom: 10px; }
+.card-title {
+  font-family: var(--mono); font-size: 0.95rem; font-weight: 700;
+  color: #fff; margin-bottom: 8px; line-height: 1.3;
+}
+.card-desc {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* Key points */
+.card-points {
+  display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px;
+}
+.point {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 0.78rem; color: var(--muted); line-height: 1.4;
+}
+.point-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); margin-top: 6px; flex-shrink: 0;
+  box-shadow: 0 0 4px var(--accent);
+}
+
+/* Card footer */
+.card-foot {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.btn-expand {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 2px;
+  text-transform: uppercase; padding: 6px 14px;
+  border-radius: 6px; border: 1px solid rgba(73,224,255,0.2);
+  background: transparent; color: var(--accent); cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-expand:hover { background: rgba(73,224,255,0.08); border-color: rgba(73,224,255,0.4); }
+.btn-expand svg { transition: transform 0.3s; }
+.card.expanded .btn-expand svg { transform: rotate(180deg); }
+
+.btn-done {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 2px;
+  text-transform: uppercase; padding: 6px 14px;
+  border-radius: 6px; border: 1px solid rgba(68,255,136,0.2);
+  background: transparent; color: rgba(68,255,136,0.6); cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-done:hover { background: rgba(68,255,136,0.08); border-color: rgba(68,255,136,0.5); }
+.card.completed .btn-done {
+  background: rgba(68,255,136,0.1); border-color: rgba(68,255,136,0.4); color: var(--success);
+}
+
+/* Expandable detail panel */
+.card-detail {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1);
+  border-top: 0px solid rgba(73,224,255,0.08);
+}
+.card.expanded .card-detail {
+  max-height: 900px;
+  border-top-width: 1px;
+}
+.card-detail-inner {
+  padding: 18px 18px 20px;
+  background: rgba(73,224,255,0.02);
+}
+
+/* Detail sub-sections */
+.detail-section { margin-bottom: 18px; }
+.detail-section:last-child { margin-bottom: 0; }
+.detail-heading {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.detail-heading::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(73,224,255,0.15);
+}
+.detail-text {
+  font-size: 0.78rem; color: var(--muted); line-height: 1.7; margin-bottom: 10px;
+}
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;
+}
+.detail-item {
+  background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 10px 12px;
+}
+.detail-item-label {
+  font-family: var(--mono); font-size: 0.62rem; color: var(--accent);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.detail-item-val {
+  font-size: 0.72rem; color: var(--text); line-height: 1.4;
+}
+
+/* Code/formula blocks */
+.code-block {
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(73,224,255,0.12);
+  border-radius: 8px; padding: 12px 14px;
+  font-family: var(--mono); font-size: 0.72rem;
+  color: var(--accent); line-height: 1.8; overflow-x: auto;
+  margin: 8px 0;
+}
+.code-block .comment { color: rgba(73,224,255,0.35); }
+.code-block .val { color: var(--warn); }
+.code-block .op { color: var(--accent2); }
+
+/* Table */
+.truth-table {
+  width: 100%; border-collapse: collapse; margin: 8px 0;
+  font-family: var(--mono); font-size: 0.68rem;
+}
+.truth-table th {
+  background: rgba(73,224,255,0.08); color: var(--accent);
+  padding: 6px 10px; text-align: center; letter-spacing: 2px;
+  border: 1px solid rgba(73,224,255,0.15);
+}
+.truth-table td {
+  padding: 5px 10px; text-align: center; color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.truth-table tr:hover td { background: rgba(73,224,255,0.03); color: var(--text); }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 10px; }
+.tl-item { display: flex; gap: 12px; align-items: flex-start; }
+.tl-badge {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 1px;
+  color: var(--accent); background: rgba(73,224,255,0.1);
+  border: 1px solid rgba(73,224,255,0.2);
+  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+  flex-shrink: 0; margin-top: 2px;
+}
+.tl-text { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+.tl-text b { color: var(--text); }
+
+/* ── FOOTER ── */
+.footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  height: 40px; padding: 0 28px;
+  background: rgba(5,5,8,0.93); border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer span { font-family: var(--mono); font-size: 0.58rem; color: var(--muted); letter-spacing: 2px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .hero { padding: 36px 24px 32px; }
+  .topics-section { padding: 28px 24px 20px; }
+  .progress-strip { padding: 16px 24px; }
+  .p-node-label { display: none; }
+}
+@media (max-width: 640px) {
+  .nav { padding: 0 14px; }
+  .nav-back span { display: none; }
+  .nav-prog-bar { width: 50px; }
+  .hero { padding: 26px 16px 24px; }
+  .hero-title { font-size: 1.4rem; }
+  .hero-desc { font-size: 0.82rem; }
+  .progress-strip { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .progress-nodes { width: 100%; max-width: 100%; }
+  .topics-section { padding: 22px 14px 16px; }
+  .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+  .card-body { padding: 14px 14px 10px; }
+  .card-foot { padding: 10px 14px; }
+  .card-detail-inner { padding: 14px; }
+  .detail-grid { grid-template-columns: 1fr 1fr; }
+  .footer span:last-child { display: none; }
+}
+@media (max-width: 400px) {
+  .hero-meta { flex-direction: column; gap: 6px; }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(73,224,255,0.18); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-back" href="contents.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5"/><path d="m12 5-7 7 7 7"/></svg>
+    <span>Back to Library</span>
+  </a>
+  <div class="nav-code">CC 111</div>
+  <div class="nav-progress-wrap">
+    <span class="nav-prog-text" id="navProgText">0 / 6</span>
+    <div class="nav-prog-bar"><div class="nav-prog-fill" id="navProgFill" style="width:0%"></div></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <svg class="hero-bg-circuit" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice">
+    <g stroke="#49e0ff" stroke-width="1" fill="none" stroke-linecap="round">
+      <path d="M0,80 L120,80 L120,40 L240,40 L240,80 L360,80 L360,150 L500,150"/>
+      <path d="M500,150 L600,150 L600,80 L720,80 L720,40 L900,40 L900,80 L1200,80"/>
+      <path d="M0,200 L80,200 L80,150 L200,150 L200,200 L360,200 L360,150"/>
+      <path d="M600,150 L600,220 L760,220 L760,200 L1000,200 L1000,150 L1200,150"/>
+      <circle cx="120" cy="80" r="4" fill="#49e0ff"/>
+      <circle cx="240" cy="40" r="4" fill="#49e0ff"/>
+      <circle cx="360" cy="150" r="4" fill="#49e0ff"/>
+      <circle cx="600" cy="150" r="4" fill="#49e0ff"/>
+      <circle cx="720" cy="80" r="4" fill="#49e0ff"/>
+      <circle cx="760" cy="220" r="4" fill="#49e0ff"/>
+      <circle cx="1000" cy="200" r="4" fill="#49e0ff"/>
+      <rect x="460" y="120" width="80" height="60" rx="3" stroke-dasharray="4 2"/>
+      <rect x="870" y="55" width="60" height="50" rx="3" stroke-dasharray="4 2"/>
+    </g>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      CC 111 &nbsp;·&nbsp; 1st Year &nbsp;·&nbsp; Core Foundation
+    </div>
+    <h1 class="hero-title">Introduction to<br><span>Computing</span></h1>
+    <p class="hero-desc">
+      Fundamentals of computing hardware, software, number systems, and the history of digital technology.
+      Establishes the essential vocabulary and core concepts that every IT professional must know.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-chip">⬡ <b>Core</b> Subject</div>
+      <div class="meta-chip">📦 <b>3</b> Units</div>
+      <div class="meta-chip">📖 <b>6</b> Topics</div>
+      <div class="meta-chip">🕐 Est. <b>18 hrs</b> study</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESS STRIP -->
+<div class="progress-strip">
+  <span class="progress-label">Course Progress</span>
+  <div class="progress-nodes" id="progressNodes">
+    <div class="p-node" data-idx="0"><div class="p-node-circle">01</div></div>
+    <div class="p-line" data-idx="0"></div>
+    <div class="p-node" data-idx="1"><div class="p-node-circle">02</div></div>
+    <div class="p-line" data-idx="1"></div>
+    <div class="p-node" data-idx="2"><div class="p-node-circle">03</div></div>
+    <div class="p-line" data-idx="2"></div>
+    <div class="p-node" data-idx="3"><div class="p-node-circle">04</div></div>
+    <div class="p-line" data-idx="3"></div>
+    <div class="p-node" data-idx="4"><div class="p-node-circle">05</div></div>
+    <div class="p-line" data-idx="4"></div>
+    <div class="p-node" data-idx="5"><div class="p-node-circle">06</div></div>
+  </div>
+  <span class="progress-count" id="progressCount">0 of 6 completed</span>
+</div>
+
+<!-- TOPICS -->
+<main class="topics-section">
+  <div class="section-header">
+    <span class="section-title">Course Topics</span>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid">
+
+    <!-- CARD 1: Hardware Components -->
+    <div class="card" id="card-0">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 01</span>
+        <span class="card-tag">Hardware</span>
+        <button class="card-check" data-idx="0" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">🖥️</div>
+        <div class="card-title">Hardware Components</div>
+        <div class="card-desc">The physical, tangible parts of a computer system that you can see and touch. Hardware is the foundation upon which all software runs.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>CPU — the brain that executes instructions</span></div>
+          <div class="point"><div class="point-dot"></div><span>RAM — fast, temporary working memory</span></div>
+          <div class="point"><div class="point-dot"></div><span>Storage — HDDs, SSDs, NVMe drives</span></div>
+          <div class="point"><div class="point-dot"></div><span>Motherboard — the main interconnect board</span></div>
+          <div class="point"><div class="point-dot"></div><span>I/O devices — keyboard, mouse, monitor</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(0)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="0" onclick="toggleDone(0)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">CPU Architecture</div>
+            <div class="detail-text">The Central Processing Unit consists of three main units: the <b style="color:var(--text)">Arithmetic Logic Unit (ALU)</b> for calculations, the <b style="color:var(--text)">Control Unit (CU)</b> for directing operations, and <b style="color:var(--text)">Registers</b> for immediate data storage.</div>
+            <div class="detail-grid">
+              <div class="detail-item"><div class="detail-item-label">ALU</div><div class="detail-item-val">Performs math and logic operations</div></div>
+              <div class="detail-item"><div class="detail-item-label">Control Unit</div><div class="detail-item-val">Fetches, decodes &amp; executes instructions</div></div>
+              <div class="detail-item"><div class="detail-item-label">Cache</div><div class="detail-item-val">L1/L2/L3 ultra-fast on-chip memory</div></div>
+              <div class="detail-item"><div class="detail-item-label">Clock Speed</div><div class="detail-item-val">Measured in GHz (cycles/second)</div></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-heading">Memory Hierarchy</div>
+            <div class="code-block"><span class="comment">// Fastest → Slowest (also Smallest → Largest)</span>
+Registers → Cache (L1/L2/L3) → RAM → SSD/HDD</div>
+            <div class="detail-grid">
+              <div class="detail-item"><div class="detail-item-label">RAM</div><div class="detail-item-val">Volatile, 8–64 GB typical, ns speed</div></div>
+              <div class="detail-item"><div class="detail-item-label">HDD</div><div class="detail-item-val">Magnetic, 500 GB–4 TB, ms speed</div></div>
+              <div class="detail-item"><div class="detail-item-label">SSD</div><div class="detail-item-val">Flash-based, fast, durable, μs speed</div></div>
+              <div class="detail-item"><div class="detail-item-label">NVMe</div><div class="detail-item-val">PCIe-connected SSD, 7 GB/s read</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Software Classification -->
+    <div class="card" id="card-1">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 02</span>
+        <span class="card-tag">Software</span>
+        <button class="card-check" data-idx="1" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">💾</div>
+        <div class="card-title">Software Classification</div>
+        <div class="card-desc">Software is organized instructions that tell hardware what to do. It is broadly classified into system software and application software.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>System Software — OS, BIOS, device drivers</span></div>
+          <div class="point"><div class="point-dot"></div><span>Application Software — user-facing programs</span></div>
+          <div class="point"><div class="point-dot"></div><span>Utility Software — maintenance tools</span></div>
+          <div class="point"><div class="point-dot"></div><span>Programming tools — compilers, IDEs</span></div>
+          <div class="point"><div class="point-dot"></div><span>Open-source vs. proprietary licenses</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(1)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="1" onclick="toggleDone(1)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">System Software</div>
+            <div class="detail-grid">
+              <div class="detail-item"><div class="detail-item-label">OS</div><div class="detail-item-val">Windows, macOS, Linux, Android</div></div>
+              <div class="detail-item"><div class="detail-item-label">BIOS/UEFI</div><div class="detail-item-val">Firmware that boots hardware</div></div>
+              <div class="detail-item"><div class="detail-item-label">Drivers</div><div class="detail-item-val">Hardware-OS communication layer</div></div>
+              <div class="detail-item"><div class="detail-item-label">Middleware</div><div class="detail-item-val">Software between OS and apps</div></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-heading">Application Software</div>
+            <div class="detail-grid">
+              <div class="detail-item"><div class="detail-item-label">Productivity</div><div class="detail-item-val">MS Office, Google Docs, LibreOffice</div></div>
+              <div class="detail-item"><div class="detail-item-label">Web Browsers</div><div class="detail-item-val">Chrome, Firefox, Safari, Edge</div></div>
+              <div class="detail-item"><div class="detail-item-label">Media</div><div class="detail-item-val">VLC, Photoshop, Audacity</div></div>
+              <div class="detail-item"><div class="detail-item-label">Dev Tools</div><div class="detail-item-val">VS Code, IntelliJ, Eclipse</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: Number Systems -->
+    <div class="card" id="card-2">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 03</span>
+        <span class="card-tag">Math</span>
+        <button class="card-check" data-idx="2" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">🔢</div>
+        <div class="card-title">Number Systems</div>
+        <div class="card-desc">Computers use different number bases for different purposes. Understanding conversions between bases is essential for programming and digital systems.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>Decimal (Base-10): digits 0–9, human use</span></div>
+          <div class="point"><div class="point-dot"></div><span>Binary (Base-2): digits 0–1, computer use</span></div>
+          <div class="point"><div class="point-dot"></div><span>Octal (Base-8): digits 0–7, compact binary</span></div>
+          <div class="point"><div class="point-dot"></div><span>Hexadecimal (Base-16): 0–9 + A–F</span></div>
+          <div class="point"><div class="point-dot"></div><span>Conversion using positional notation</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(2)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="2" onclick="toggleDone(2)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">Conversion Example: 42 in all bases</div>
+            <div class="code-block"><span class="val">42</span><sub>10</sub>  =  <span class="val">101010</span><sub>2</sub>  =  <span class="val">52</span><sub>8</sub>  =  <span class="val">2A</span><sub>16</sub>
+
+<span class="comment">// Decimal → Binary: divide by 2, collect remainders</span>
+42 ÷ 2 = 21 R <span class="val">0</span>
+21 ÷ 2 = 10 R <span class="val">1</span>
+10 ÷ 2 =  5 R <span class="val">0</span>
+ 5 ÷ 2 =  2 R <span class="val">1</span>
+ 2 ÷ 2 =  1 R <span class="val">0</span>
+ 1 ÷ 2 =  0 R <span class="val">1</span>  → Read bottom up: <span class="val">101010</span></div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-heading">Positional Notation</div>
+            <div class="code-block"><span class="comment">// Binary  1  0  1  0  1  0</span>
+Position: 5  4  3  2  1  0
+Value:    <span class="val">32</span>+0+<span class="val">8</span>+0+<span class="val">2</span>+0 = <span class="val">42</span>
+
+<span class="comment">// Hex digit A = 10, 2×16 + A = 32+10 = 42</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: Binary Arithmetic -->
+    <div class="card" id="card-3">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 04</span>
+        <span class="card-tag">Arithmetic</span>
+        <button class="card-check" data-idx="3" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">➕</div>
+        <div class="card-title">Binary Arithmetic</div>
+        <div class="card-desc">All arithmetic in a computer is performed in binary. Understanding how addition, subtraction, and negative numbers work at the binary level is fundamental.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>Binary addition rules and carry propagation</span></div>
+          <div class="point"><div class="point-dot"></div><span>Two's complement for negative numbers</span></div>
+          <div class="point"><div class="point-dot"></div><span>Binary subtraction using complement method</span></div>
+          <div class="point"><div class="point-dot"></div><span>Overflow detection</span></div>
+          <div class="point"><div class="point-dot"></div><span>Signed vs unsigned representations</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(3)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="3" onclick="toggleDone(3)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">Binary Addition Rules</div>
+            <div class="code-block">0 <span class="op">+</span> 0 = <span class="val">0</span>       (sum=0, carry=0)
+0 <span class="op">+</span> 1 = <span class="val">1</span>       (sum=1, carry=0)
+1 <span class="op">+</span> 0 = <span class="val">1</span>       (sum=1, carry=0)
+1 <span class="op">+</span> 1 = <span class="val">10</span>      (sum=0, carry=<span class="val">1</span>)
+1 <span class="op">+</span> 1 <span class="op">+</span> 1 = <span class="val">11</span>   (sum=1, carry=<span class="val">1</span>)
+
+<span class="comment">// Example: 13 + 10 = 23</span>
+  <span class="val">1101</span>   (13)
++ <span class="val">1010</span>   (10)
+──────
+<span class="val">10111</span>   (23) ✓</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-heading">Two's Complement</div>
+            <div class="detail-text">Method to represent negative numbers. To negate a number: <b style="color:var(--text)">invert all bits</b>, then <b style="color:var(--text)">add 1</b>.</div>
+            <div class="code-block"><span class="comment">// Represent -5 in 8-bit two's complement</span>
++5  =  00000101
+Invert: 11111010
+Add 1:  11111011  <span class="op">← </span><span class="val">-5</span> in two's complement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 5: History of Computing -->
+    <div class="card" id="card-4">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 05</span>
+        <span class="card-tag">History</span>
+        <button class="card-check" data-idx="4" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">🕰️</div>
+        <div class="card-title">History of Computing</div>
+        <div class="card-desc">Computing has evolved through five generations over 80 years — from room-sized vacuum tube machines to AI-powered microprocessors that fit in your pocket.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>1st Gen (1940s–50s): Vacuum tubes, ENIAC</span></div>
+          <div class="point"><div class="point-dot"></div><span>2nd Gen (1950s–60s): Transistors replace tubes</span></div>
+          <div class="point"><div class="point-dot"></div><span>3rd Gen (1960s–70s): Integrated circuits</span></div>
+          <div class="point"><div class="point-dot"></div><span>4th Gen (1970s–now): Microprocessors, PCs</span></div>
+          <div class="point"><div class="point-dot"></div><span>5th Gen (present): AI, quantum computing</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(4)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="4" onclick="toggleDone(4)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">Five Generations</div>
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-badge">1940s–50s</div><div class="tl-text"><b>1st Gen:</b> Vacuum tubes, punched cards, ENIAC (18,000 tubes), UNIVAC. Very large, hot, unreliable. Machine language only.</div></div>
+              <div class="tl-item"><div class="tl-badge">1950s–60s</div><div class="tl-text"><b>2nd Gen:</b> Transistors replace vacuum tubes. Smaller, cheaper, faster. Assembly language &amp; early high-level languages (FORTRAN, COBOL).</div></div>
+              <div class="tl-item"><div class="tl-badge">1960s–70s</div><div class="tl-text"><b>3rd Gen:</b> Integrated Circuits (ICs). Multiple transistors on a single chip. IBM System/360. Operating systems introduced. C language.</div></div>
+              <div class="tl-item"><div class="tl-badge">1970s–now</div><div class="tl-text"><b>4th Gen:</b> Microprocessors (Intel 4004, 1971). Personal computers: Apple II, IBM PC. GUI introduced. Internet era. Moore's Law.</div></div>
+              <div class="tl-item"><div class="tl-badge">Present</div><div class="tl-text"><b>5th Gen:</b> AI &amp; machine learning, quantum computing, natural language processing. Parallel processing, neural networks, edge computing.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 6: Digital Logic Basics -->
+    <div class="card" id="card-5">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 06</span>
+        <span class="card-tag">Logic</span>
+        <button class="card-check" data-idx="5" title="Mark complete">✓</button>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Digital Logic Basics</div>
+        <div class="card-desc">All computing is built on Boolean logic. Logic gates are the fundamental building blocks of every digital circuit, from simple ALUs to entire CPUs.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>Boolean algebra — TRUE/FALSE operations</span></div>
+          <div class="point"><div class="point-dot"></div><span>AND, OR, NOT — the three basic gates</span></div>
+          <div class="point"><div class="point-dot"></div><span>NAND, NOR, XOR — derived gates</span></div>
+          <div class="point"><div class="point-dot"></div><span>Truth tables for each gate</span></div>
+          <div class="point"><div class="point-dot"></div><span>Building combinational circuits</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <button class="btn-expand" onclick="toggleCard(5)">
+          Details
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="btn-done" data-idx="5" onclick="toggleDone(5)">Mark Done</button>
+      </div>
+      <div class="card-detail">
+        <div class="card-detail-inner">
+          <div class="detail-section">
+            <div class="detail-heading">Logic Gate Truth Tables</div>
+            <div style="overflow-x:auto">
+            <table class="truth-table">
+              <thead><tr><th>A</th><th>B</th><th>AND</th><th>OR</th><th>NAND</th><th>NOR</th><th>XOR</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-heading">Boolean Algebra Laws</div>
+            <div class="code-block"><span class="comment">// Identity Laws</span>
+A <span class="op">AND</span> 1 = A      A <span class="op">OR</span> 0 = A
+
+<span class="comment">// Complement Laws</span>
+A <span class="op">AND</span> NOT(A) = 0   A <span class="op">OR</span> NOT(A) = 1
+
+<span class="comment">// De Morgan's Theorem</span>
+NOT(A <span class="op">AND</span> B) = NOT(A) <span class="op">OR</span>  NOT(B)
+NOT(A <span class="op">OR</span>  B) = NOT(A) <span class="op">AND</span> NOT(B)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end cards-grid -->
+</main>
+
+<footer class="footer">
+  <span>CC 111 — Introduction to Computing</span>
+  <span id="footerProg">0 / 6 topics completed</span>
+</footer>
+
+<script>
+const STORAGE_KEY = 'cc111_progress';
+let done = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+function updateProgress() {
+  const total = 6;
+  const count = done.length;
+  const pct   = Math.round((count / total) * 100);
+
+  document.getElementById('navProgFill').style.width = pct + '%';
+  document.getElementById('navProgText').textContent  = count + ' / ' + total;
+  document.getElementById('progressCount').textContent= count + ' of ' + total + ' completed';
+  document.getElementById('footerProg').textContent   = count + ' / ' + total + ' topics completed';
+
+  // update progress nodes
+  document.querySelectorAll('.p-node').forEach((n, i) => {
+    n.classList.toggle('done', done.includes(i));
+  });
+  document.querySelectorAll('.p-line').forEach((l, i) => {
+    l.classList.toggle('done', done.includes(i) && done.includes(i + 1));
+  });
+
+  // update card UI
+  for (let i = 0; i < total; i++) {
+    const card    = document.getElementById('card-' + i);
+    const btnDone = document.querySelector('.btn-done[data-idx="' + i + '"]');
+    const chk     = document.querySelector('.card-check[data-idx="' + i + '"]');
+    const isDone  = done.includes(i);
+    card.classList.toggle('completed', isDone);
+    if (btnDone) btnDone.textContent = isDone ? '✓ Done' : 'Mark Done';
+    if (chk) chk.style.borderColor = isDone ? 'var(--success)' : '';
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(done));
+}
+
+function toggleDone(idx) {
+  if (done.includes(idx)) done = done.filter(i => i !== idx);
+  else done.push(idx);
+  updateProgress();
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById('card-' + idx);
+  const isExp = card.classList.contains('expanded');
+  // collapse all
+  document.querySelectorAll('.card.expanded').forEach(c => c.classList.remove('expanded'));
+  if (!isExp) card.classList.add('expanded');
+}
+
+// Keyboard shortcut: click progress nodes
+document.querySelectorAll('.p-node').forEach(n => {
+  n.addEventListener('click', () => {
+    const i = parseInt(n.dataset.idx);
+    document.getElementById('card-' + i)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+updateProgress();
+</script>
+</body>
+</html>
