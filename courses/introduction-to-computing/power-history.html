@@ -692,7 +692,7 @@
     
     <div class="lab-workspace">
       <div class="bulb-container">
-        <img class="bulb-image off" id="bulbSvg" src="bulb_off.png" alt="Light bulb off" width="150" height="150"/>
+        <img class="bulb-image off" id="bulbSvg" src="images/bulb_off.png" alt="Light bulb off" width="150" height="150"/>
       </div>
       
       <div class="lab-bit-palette">
@@ -736,9 +736,9 @@ function setBulbState(state) {
   bulb.classList.add(state);
   
   if (state === 'on') {
-    bulb.src = 'bulb_on.png';
+    bulb.src = 'images/bulb_on.png';
   } else {
-    bulb.src = 'bulb_off.png';
+    bulb.src = 'images/bulb_off.png';
   }
 }
 
