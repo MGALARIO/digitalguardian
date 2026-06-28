@@ -538,6 +538,14 @@
         padding: 20px 15px;
       }
 
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .header .subtitle {
+        font-size: 0.85rem;
+      }
+
       .power-icon-display svg {
         width: 80px;
         height: 80px;
@@ -547,31 +555,139 @@
         padding: 20px;
       }
 
+      .content-section h2 {
+        font-size: 1.3rem;
+      }
+
+      .content-section p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .content-section img {
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 15px 0 !important;
+      }
+
       .binary-digit .digit {
-        font-size: 3rem;
+        font-size: 2.5rem;
+      }
+
+      .binary-digit .label {
+        font-size: 0.9rem;
+      }
+
+      .timeline-item {
+        padding: 15px;
+      }
+
+      .timeline-item .year {
+        font-size: 0.9rem;
+      }
+
+      .timeline-item .title {
+        font-size: 1rem;
+      }
+
+      .timeline-item p {
+        font-size: 0.9rem;
       }
 
       .lab-content {
         padding: 20px;
+        max-width: 95%;
       }
 
-      .bulb-svg {
-        width: 120px;
-        height: 120px;
+      .bulb-image {
+        width: 100px;
+        height: 100px;
       }
 
       .lab-bit-palette-item {
-        font-size: 2.5rem;
-        padding: 8px 15px;
+        font-size: 2rem;
+        padding: 8px 12px;
       }
 
       .lab-drop-box {
+        width: 70px;
+        height: 70px;
+      }
+
+      .lab-drop-box .bit-value {
+        font-size: 2rem;
+      }
+
+      .lab-button {
+        font-size: 0.95rem;
+        padding: 12px 24px;
+      }
+
+      .back-link {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px 10px;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .header .subtitle {
+        font-size: 0.75rem;
+      }
+
+      .power-icon-display svg {
+        width: 60px;
+        height: 60px;
+      }
+
+      .content-section {
+        padding: 15px;
+      }
+
+      .content-section h2 {
+        font-size: 1.15rem;
+      }
+
+      .content-section p {
+        font-size: 0.9rem;
+      }
+
+      .binary-digit .digit {
+        font-size: 2rem;
+      }
+
+      .binary-digit .label {
+        font-size: 0.8rem;
+      }
+
+      .lab-content {
+        padding: 15px;
+        max-width: 100%;
+      }
+
+      .bulb-image {
         width: 80px;
         height: 80px;
       }
 
+      .lab-bit-palette-item {
+        font-size: 1.8rem;
+        padding: 6px 10px;
+      }
+
+      .lab-drop-box {
+        width: 60px;
+        height: 60px;
+      }
+
       .lab-drop-box .bit-value {
-        font-size: 2.5rem;
+        font-size: 1.8rem;
       }
     }
   </style>
@@ -601,8 +717,14 @@
   </div>
 
   <div class="content-section">
+    <h2>Why Start Here?</h2>
+    <p>You might be wondering why we're starting with something as simple as a power button. The answer is that this button is actually your first window into how computers think. Every time you press it, you're interacting with the fundamental language of all digital electronics: <span style="color: #ffff00; font-weight: 600;">binary</span>.</p>
+    <p>Have you ever looked closely at the power symbol and noticed it looks like a number? It's not just a random design. That symbol is literally the numbers 1 and 0 combined together. And those two numbers are everything in computing.</p>
+  </div>
+
+  <div class="content-section">
     <h2>The Binary Connection</h2>
-    <p>The power button symbol is a combination of the numbers <strong>1</strong> and <strong>0</strong>, representing the binary states of "on" and "off".</p>
+    <p>The power button symbol combines the numbers <strong>1</strong> and <strong>0</strong>, representing the <span style="color: #ffff00; font-weight: 600;">binary</span> states of "on" and "off". The circle represents <strong>0</strong> (<span style="color: #ff0000; font-weight: 600;">off state</span>), and the vertical line represents <strong>1</strong> (<span style="color: #00ff00; font-weight: 600;">on state</span>). When combined, they create a universal symbol that transcends language barriers.</p>
     
     <div class="binary-explanation">
       <div class="binary-digit zero">
@@ -615,65 +737,40 @@
       </div>
     </div>
     
-    <p>The circle represents <strong>0</strong> (<span style="color: #ff0000; font-weight: 600;">off state</span>), and the vertical line represents <strong>1</strong> (<span style="color: #00ff00; font-weight: 600;">on state</span>). When combined, they create a universal symbol that transcends language barriers.</p>
+    <p>This design takes the fundamental concept of <span style="color: #ffff00; font-weight: 600;">binary</span> (the language of all digital electronics) and translates it into a visual mark that anyone can understand, regardless of their native language. That's why this symbol works everywhere, from Tokyo to New York to Berlin to the Philippines.</p>
   </div>
 
   <div class="content-section">
-    <h2>Historical Timeline</h2>
-    <div class="timeline">
-      <div class="timeline-item">
-        <div class="year">1940s-1950s</div>
-        <div class="title">Physical Switches Era</div>
-        <p>Electronic devices used physical toggle switches with "ON" and "OFF" labels. These labels were language-dependent, creating confusion in international markets.</p>
-      </div>
-      
-      <div class="timeline-item">
-        <div class="year">1960s</div>
-        <div class="title">IEC Standards</div>
-        <p>The International Electrotechnical Commission (IEC) began working on universal symbols for electronic devices to overcome language barriers.</p>
-      </div>
-      
-      <div class="timeline-item">
-        <div class="year">1973</div>
-        <div class="title">IEC 60417-5009 Standard</div>
-        <p>The power symbol was officially standardized as IEC 60417-5009. The symbol was designed to be simple, recognizable, and language-independent.</p>
-      </div>
-      
-      <div class="timeline-item">
-        <div class="year">1980s-1990s</div>
-        <div class="title">Widespread Adoption</div>
-        <p>The power symbol became ubiquitous on computers, electronics, and appliances worldwide, becoming truly universal.</p>
-      </div>
-      
-      <div class="timeline-item">
-        <div class="year">Present Day</div>
-        <div class="title">Modern Usage</div>
-        <p>The symbol is now recognized globally and appears on everything from smartphones to spacecraft, a testament to its brilliant design.</p>
-      </div>
-    </div>
+    <h2>The Problem Before the Symbol</h2>
+    <p>But it wasn't always this simple. Before the power symbol existed, electronic devices used physical toggle switches with "ON" and "OFF" labels written in words. Imagine buying a device from Japan and not being able to read the labels. Or trying to use a German device when you only speak English. This was a real problem as electronics started spreading globally in the mid-20th century.</p>
+    <img src="images/german on and off.png" alt="German ON/OFF switch labels showing language dependency problem" style="max-width: 100%; height: auto; margin: 20px 0; border-radius: 8px; border: 1px solid rgba(73,224,255,0.3);">
+    <p>The electronics industry needed a solution that worked everywhere, without requiring translation. They needed a symbol that anyone could understand instantly, regardless of what language they spoke.</p>
   </div>
 
   <div class="content-section">
-    <h2>Why This Design Works</h2>
-    <ul>
-      <li><strong>Language Independence:</strong> No words needed, understood across all cultures</li>
-      <li><strong>Binary Logic:</strong> Represents the fundamental on/off states of digital electronics</li>
-      <li><strong>Simplicity:</strong> Easy to draw, recognize, and reproduce</li>
-      <li><strong>Universality:</strong> Works across all types of electronic devices</li>
-      <li><strong>Aesthetic Appeal:</strong> Clean, modern design that has stood the test of time</li>
-    </ul>
+    <h2>How the Symbol Was Born</h2>
+    <p>The solution came from an international organization called the International Electrotechnical Commission (IEC). In the 1960s, they began working on universal symbols for electronic devices. By 1973, they officially standardized the power symbol as IEC 60417-5009.</p>
+    <img src="images/power on and off switch.jpg" alt="Power on and off switch with universal symbol" style="max-width: 50%; height: auto; margin: 20px auto; display: block; border-radius: 8px; border: 1px solid rgba(73,224,255,0.3);">
+    <p>The design was intentionally simple, recognizable, and language-independent. Throughout the 1980s and 1990s, the symbol began appearing on computers and electronics worldwide. Today, you'll find it on everything from smartphones to spacecraft. It's become truly universal, exactly as its designers intended.</p>
   </div>
 
   <div class="content-section">
-    <h2>The Actual Origin Story</h2>
-    <p>This is not just a coincidence or urban legend. It's the actual origin story of the symbol, standardized by international engineering bodies and adopted globally.</p>
-    <p>The symbol's brilliance lies in its simplicity: it takes the fundamental concept of binary (the language of all digital electronics) and translates it into a visual mark that anyone can understand, regardless of their native language.</p>
+    <h2>Why This Design Works So Well</h2>
+    <p>The power symbol succeeds because it hits several goals at once. It needs no words, so it works across all cultures. It represents the actual on/off states of digital electronics through <span style="color: #ffff00; font-weight: 600;">binary</span> logic. It's simple enough that anyone can draw it from memory. It works on every type of electronic device. And it has a clean, modern aesthetic that has stood the test of time for over 50 years.</p>
   </div>
 
   <div class="content-section">
-    <h2>Interactive Lab</h2>
-    <p>Practice the binary power concept by controlling a light bulb with 0 and 1 bits. Drag 0 to turn it off, drag 1 to turn it on!</p>
+    <h2>Try It Yourself</h2>
+    <p>Now that you understand the connection between the power button and <span style="color: #ffff00; font-weight: 600;">binary</span>, let's put it into practice. In the interactive lab below, you'll control a light bulb using the same 0 and 1 logic. Drag 0 to turn it off, drag 1 to turn it on. This is exactly how your computer's power system works at the most basic level.</p>
     <button class="lab-button" onclick="openLab()">Launch Interactive Lab</button>
+  </div>
+
+  <div class="content-section">
+    <h2>What's Next?</h2>
+    <p>You've just discovered that the power button on your computer is actually a visual representation of <span style="color: #ffff00; font-weight: 600;">binary</span>, the fundamental language of all digital electronics. But how did we get here? How did we go from human computers calculating by hand to the sophisticated systems we use today?</p>
+    <p>In the next topic, <strong>History of Computing</strong>, you'll explore much more than just hardware. You'll trace the full story of computing as a human activity, not just the machines themselves. This includes the evolution of algorithms and mathematical theory, the development of programming languages from Fortran to Python, the birth of the internet and networking, and how computing transformed business, science, warfare, and daily life.</p>
+    <p>You'll learn about the "human computers" who processed data before electronic machines existed, how software and open-source movements evolved, and how social, economic, and cultural forces shaped the computing world we know today. All of this, driven by the same <span style="color: #ffff00; font-weight: 600;">binary</span> principles you just learned.</p>
+    <p>The journey from that simple power button symbol to the entire history of computing begins with understanding where it all started.</p>
   </div>
 </div>
 
