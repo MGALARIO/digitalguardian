@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Digital Guardian</title>
+<title>IT Digital Library</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -307,7 +307,7 @@
 <svg class="circuit-board" id="circuitBoard" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"></svg>
 
 <div class="header" id="header">
-  <h1>Digital Guardian</h1>
+  <h1>IT Digital Library</h1>
   <div class="divider"><span></span></div>
   <div class="subtitle">The power is in your hands</div>
 </div>
@@ -329,7 +329,7 @@
     <div class="status-dot"></div>
     <span id="statusText">Standby</span>
   </div>
-  <span>Digital Guardian v1.0</span>
+  <span>IT Digital Library v1.0</span>
 </div>
 
 <script>
@@ -499,7 +499,7 @@ async function powerOn() {
   statusTxt.textContent='System Online';
   label.classList.add('active');
   busy=false;
-  setTimeout(() => { window.location.href = 'contents.html'; }, 800);
+  setTimeout(() => { window.location.href = 'contents.html'; }, 2500);
 }
 
 function powerOff() {
