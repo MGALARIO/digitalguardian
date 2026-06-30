@@ -317,7 +317,7 @@ body::before {
     <span>Back to Library</span>
   </a>
   <div class="nav-code">CC 111</div>
-  <div class="nav-right">7 Topics</div>
+  <div class="nav-right">3 Topics</div>
 </nav>
 
 <!-- HERO -->
@@ -352,8 +352,8 @@ body::before {
     </p>
     <div class="hero-meta">
       <div class="meta-chip">⬡ <b>Core</b> Subject</div>
-      <div class="meta-chip">📦 <b>3</b> Units</div>
-      <div class="meta-chip">📖 <b>7</b> Topics</div>
+      <div class="meta-chip">📦 <b>1</b> Unit</div>
+      <div class="meta-chip">📖 <b>3</b> Topics</div>
     </div>
   </div>
 </section>
@@ -396,10 +396,42 @@ body::before {
       </div>
     </a>
 
-    <!-- TOPIC 02: History of Computing — LOCKED -->
-    <div class="card locked" id="card-0">
+    <!-- TOPIC 02: Transistor — LIVE -->
+    <a class="card live" href="transistor.html">
       <div class="card-topbar">
         <span class="card-num">TOPIC 02</span>
+        <span class="card-tag">Hardware · Logic</span>
+        <div class="card-status-dot"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="8" width="16" height="8" rx="1" stroke="#ff6600"/>
+            <line x1="12" y1="8" x2="12" y2="4" stroke="#ff6600"/>
+            <circle cx="12" cy="4" r="2" stroke="#ff6600"/>
+            <line x1="4" y1="12" x2="2" y2="12" stroke="#ff6600"/>
+            <line x1="20" y1="12" x2="22" y2="12" stroke="#ff6600"/>
+          </svg>
+        </div>
+        <div class="card-title">Transistor</div>
+        <div class="card-desc">The fundamental building block of modern electronics. Understand how a single transistor switches between ON and OFF using voltage, forming the basis of all digital logic.</div>
+        <div class="card-points">
+          <div class="point"><div class="point-dot"></div><span>Transistor as a voltage-controlled switch</span></div>
+          <div class="point"><div class="point-dot"></div><span>Threshold voltage (~0.6V) determines ON/OFF state</span></div>
+          <div class="point"><div class="point-dot"></div><span>Interactive animation of signal flow</span></div>
+          <div class="point"><div class="point-dot"></div><span>From single transistor to logic gates to memory</span></div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="foot-status"><div class="card-status-dot"></div>Live</div>
+        <span class="btn-launch">Open Topic <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+      </div>
+    </a>
+
+    <!-- TOPIC 03: History of Computing — LOCKED -->
+    <div class="card locked" id="card-0">
+      <div class="card-topbar">
+        <span class="card-num">TOPIC 03</span>
         <span class="card-tag">History</span>
         <div class="card-status-dot off"></div>
       </div>
@@ -420,132 +452,13 @@ body::before {
       </div>
     </div>
 
-    <!-- TOPIC 03: Hardware Components — LOCKED -->
-    <div class="card locked" id="card-1">
-      <div class="card-topbar">
-        <span class="card-num">TOPIC 03</span>
-        <span class="card-tag">Hardware</span>
-        <div class="card-status-dot off"></div>
-      </div>
-      <div class="card-body">
-        <div class="card-icon">🖥️</div>
-        <div class="card-title">Hardware Components</div>
-        <div class="card-desc">The physical evolution that brought us to modern computers: CPU, RAM, storage, motherboard, and I/O devices. Learn what each component does and how they work together.</div>
-        <div class="card-points">
-          <div class="point"><div class="point-dot"></div><span>CPU — ALU, Control Unit, registers, cache</span></div>
-          <div class="point"><div class="point-dot"></div><span>Memory hierarchy: RAM → SSD → HDD</span></div>
-          <div class="point"><div class="point-dot"></div><span>Motherboard — the main interconnect board</span></div>
-          <div class="point"><div class="point-dot"></div><span>Input and output device classification</span></div>
-        </div>
-      </div>
-      <div class="card-foot">
-        <div class="foot-status dim">🔒 Coming Soon</div>
-        <span class="btn-locked">Locked</span>
-      </div>
-    </div>
-
-    <!-- TOPIC 04: Software Classification — LOCKED -->
-    <div class="card locked" id="card-2">
-      <div class="card-topbar">
-        <span class="card-num">TOPIC 04</span>
-        <span class="card-tag">Software</span>
-        <div class="card-status-dot off"></div>
-      </div>
-      <div class="card-body">
-        <div class="card-icon">💾</div>
-        <div class="card-title">Software Classification</div>
-        <div class="card-desc">Hardware needs instructions to function. Explore the software that runs on these components, from the OS that boots up to the apps you use every day.</div>
-        <div class="card-points">
-          <div class="point"><div class="point-dot"></div><span>System software — OS, BIOS, device drivers</span></div>
-          <div class="point"><div class="point-dot"></div><span>Application software — productivity, browsers</span></div>
-          <div class="point"><div class="point-dot"></div><span>Utility software — antivirus, disk tools</span></div>
-          <div class="point"><div class="point-dot"></div><span>Open-source vs. proprietary licensing</span></div>
-        </div>
-      </div>
-      <div class="card-foot">
-        <div class="foot-status dim">🔒 Coming Soon</div>
-        <span class="btn-locked">Locked</span>
-      </div>
-    </div>
-
-    <!-- TOPIC 05: Number Systems — LOCKED -->
-    <div class="card locked" id="card-3">
-      <div class="card-topbar">
-        <span class="card-num">TOPIC 05</span>
-        <span class="card-tag">Number Systems</span>
-        <div class="card-status-dot off"></div>
-      </div>
-      <div class="card-body">
-        <div class="card-icon">🔢</div>
-        <div class="card-title">Number Systems</div>
-        <div class="card-desc">Software ultimately speaks in numbers. That 1 and 0 from the power button is just the start. Learn Binary, Octal, and Hexadecimal to understand how computers truly communicate.</div>
-        <div class="card-points">
-          <div class="point"><div class="point-dot"></div><span>Decimal (Base-10) — the human default</span></div>
-          <div class="point"><div class="point-dot"></div><span>Binary (Base-2) — the machine language</span></div>
-          <div class="point"><div class="point-dot"></div><span>Octal (Base-8) and Hex (Base-16)</span></div>
-          <div class="point"><div class="point-dot"></div><span>Positional notation and base conversion</span></div>
-        </div>
-      </div>
-      <div class="card-foot">
-        <div class="foot-status dim">🔒 Coming Soon</div>
-        <span class="btn-locked">Locked</span>
-      </div>
-    </div>
-
-    <!-- TOPIC 06: Binary Arithmetic — LOCKED -->
-    <div class="card locked" id="card-4">
-      <div class="card-topbar">
-        <span class="card-num">TOPIC 06</span>
-        <span class="card-tag">Arithmetic</span>
-        <div class="card-status-dot off"></div>
-      </div>
-      <div class="card-body">
-        <div class="card-icon">➕</div>
-        <div class="card-title">Binary Arithmetic</div>
-        <div class="card-desc">Now that you can read binary, see how a CPU uses it to calculate. Addition, subtraction via two's complement, carry propagation, and overflow. The math inside every processor.</div>
-        <div class="card-points">
-          <div class="point"><div class="point-dot"></div><span>Binary addition rules and carry</span></div>
-          <div class="point"><div class="point-dot"></div><span>Two's complement for negative numbers</span></div>
-          <div class="point"><div class="point-dot"></div><span>Binary subtraction via complement method</span></div>
-          <div class="point"><div class="point-dot"></div><span>Signed vs. unsigned integers</span></div>
-        </div>
-      </div>
-      <div class="card-foot">
-        <div class="foot-status dim">🔒 Coming Soon</div>
-        <span class="btn-locked">Locked</span>
-      </div>
-    </div>
-
-    <!-- TOPIC 07: Digital Logic Basics — LOCKED -->
-    <div class="card locked" id="card-5">
-      <div class="card-topbar">
-        <span class="card-num">TOPIC 07</span>
-        <span class="card-tag">Logic</span>
-        <div class="card-status-dot off"></div>
-      </div>
-      <div class="card-body">
-        <div class="card-icon">⚡</div>
-        <div class="card-title">Digital Logic Basics</div>
-        <div class="card-desc">The final layer: how binary arithmetic becomes physical. Gates that implement 1 and 0 at the circuit level. Boolean algebra, truth tables, and the building blocks of every CPU ever made.</div>
-        <div class="card-points">
-          <div class="point"><div class="point-dot"></div><span>Boolean algebra — TRUE / FALSE operations</span></div>
-          <div class="point"><div class="point-dot"></div><span>AND, OR, NOT — the three primitive gates</span></div>
-          <div class="point"><div class="point-dot"></div><span>NAND, NOR, XOR — derived gates</span></div>
-          <div class="point"><div class="point-dot"></div><span>Truth tables and De Morgan's theorem</span></div>
-        </div>
-      </div>
-      <div class="card-foot">
-        <div class="foot-status dim">🔒 Coming Soon</div>
-        <span class="btn-locked">Locked</span>
-      </div>
-    </div>
 
   </div><!-- end cards-grid -->
 </main>
 
 <footer class="footer">
   <span>CC 111 — Introduction to Computing</span>
-  <span>7 Topics</span>
+  <span>3 Topics</span>
 </footer>
 
 </body>
